@@ -1,17 +1,11 @@
 using System;
+using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
-using Fdt = FDT.Interfaces;
 using LasecHartCommDTM.FdtInterfaces;
 using HartEngine;
 
-public class CommDtm :
-    Fdt.IDtm,
-    Fdt.IDtm2,
-    Fdt.IDtmInformation,
-    Fdt.IDtmInformation2,
-    ICommChannel
-    
 namespace LasecHartCommDTM
 {
     [Guid("B4B6B3E7-639D-460B-B9A0-6C7F7EB20010")]
@@ -19,20 +13,38 @@ namespace LasecHartCommDTM
     [ComVisible(true)]
     public class CommDtm : IDtm, ICommChannel
     {
+        // Resolve dependências (.dll) a partir da pasta do próprio DTM.
+        // Necessário porque o host do PACTware (Clr4Surrogate.exe) não
+        // adiciona o diretório do DTM ao probing path do AppDomain.
+        static CommDtm()
+        {
+            AppDomain.CurrentDomain.AssemblyResolve += (_, args) =>
+            {
+                var name = new AssemblyName(args.Name).Name + ".dll";
+                var dir  = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                var path = Path.Combine(dir, name);
+                return File.Exists(path) ? Assembly.LoadFrom(path) : null;
+            };
+        }
+
+        private static CommDtm _current;
+        internal static CommDtm Current => _current;
+
         private ChannelManager _manager;
         private bool _initialized;
         private bool _open;
         private byte[] _lastResponse = Array.Empty<byte>();
 
-        private string _mode = "serial";
+        private string _mode = "udp";
         private string _serialPort = "COM1";
         private string _udpHost = "127.0.0.1";
-        private int _udpPort = 20000;
+        private int _udpPort = 5094;
         private int _baud = 1200;
 
         public CommDtm()
         {
             _manager = new ChannelManager();
+            _current = this;
         }
 
         #region IDtm
@@ -140,18 +152,20 @@ namespace LasecHartCommDTM
             {
                 string clsidKeyPath = @"CLSID\" + t.GUID.ToString("B");
 
-                using (var clsidKey = Registry.ClassesRoot.OpenSubKey(clsidKeyPath, writable: true))
+                // Força hive 32-bit — PACTware 5.0 é 32-bit e lê WOW6432Node
+                using (var hkcr32 = RegistryKey.OpenBaseKey(RegistryHive.ClassesRoot, RegistryView.Registry32))
                 {
-                    if (clsidKey != null)
+                    using (var clsidKey = hkcr32.OpenSubKey(clsidKeyPath, writable: true))
                     {
-                        clsidKey.CreateSubKey(@"Implemented Categories\" + FdtDtmCategoryId);
+                        if (clsidKey != null)
+                            clsidKey.CreateSubKey(@"Implemented Categories\" + FdtDtmCategoryId);
                     }
-                }
 
-                using (var catKey = Registry.ClassesRoot.CreateSubKey(@"Component Categories\" + FdtDtmCategoryId))
-                {
-                    if (catKey != null)
-                        catKey.SetValue(null, "FDT DTM");
+                    using (var catKey = hkcr32.CreateSubKey(@"Component Categories\" + FdtDtmCategoryId))
+                    {
+                        if (catKey != null)
+                            catKey.SetValue(null, "FDT DTM");
+                    }
                 }
             }
             catch (Exception ex)
@@ -167,11 +181,12 @@ namespace LasecHartCommDTM
             {
                 string clsidKeyPath = @"CLSID\" + t.GUID.ToString("B");
 
-                using (var clsidKey = Registry.ClassesRoot.OpenSubKey(clsidKeyPath, writable: true))
+                using (var hkcr32 = RegistryKey.OpenBaseKey(RegistryHive.ClassesRoot, RegistryView.Registry32))
                 {
-                    if (clsidKey != null)
+                    using (var clsidKey = hkcr32.OpenSubKey(clsidKeyPath, writable: true))
                     {
-                        clsidKey.DeleteSubKeyTree(@"Implemented Categories\" + FdtDtmCategoryId, throwOnMissingSubKey: false);
+                        if (clsidKey != null)
+                            clsidKey.DeleteSubKeyTree(@"Implemented Categories\" + FdtDtmCategoryId, throwOnMissingSubKey: false);
                     }
                 }
             }

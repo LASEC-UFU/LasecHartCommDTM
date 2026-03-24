@@ -1,0 +1,51 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\SourceCode\\LasecHartCommDTM\\installer\\installer.csproj": {}
+  },
+  "projects": {
+    "C:\\SourceCode\\LasecHartCommDTM\\installer\\installer.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\SourceCode\\LasecHartCommDTM\\installer\\installer.csproj",
+        "projectName": "LasecHartCommDTM",
+        "projectPath": "C:\\SourceCode\\LasecHartCommDTM\\installer\\installer.csproj",
+        "packagesPath": "C:\\Users\\josuemorais\\.nuget\\packages\\",
+        "outputPath": "C:\\SourceCode\\LasecHartCommDTM\\installer\\obj\\",
+        "projectStyle": "PackageReference",
+        "UsingMicrosoftNETSdk": false,
+        "configFilePaths": [
+          "C:\\Users\\josuemorais\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "native"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "native": {
+            "targetAlias": "native",
+            "projectReferences": {}
+          }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "native": {
+          "targetAlias": "native",
+          "dependencies": {
+            "WixToolset.UI.wixext": {
+              "target": "Package",
+              "version": "[6.0.2, )"
+            }
+          }
+        }
+      }
+    }
+  }
+}

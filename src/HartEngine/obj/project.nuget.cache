@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "xj1GDv8Rf7k=",
+  "success": true,
+  "projectFilePath": "C:\\SourceCode\\LasecHartCommDTM\\src\\HartEngine\\HartEngine.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\josuemorais\\.nuget\\packages\\microsoft.netframework.referenceassemblies\\1.0.3\\microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512",
+    "C:\\Users\\josuemorais\\.nuget\\packages\\microsoft.netframework.referenceassemblies.net48\\1.0.3\\microsoft.netframework.referenceassemblies.net48.1.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,69 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
-  <Product
-      Id="*"
+  <Package
       Name="Lasec HART Communication DTM"
       Language="1033"
       Version="1.0.0.0"
       Manufacturer="JosueLab"
-      UpgradeCode="1F6D3983-1B43-4F41-9204-4FAE6E4F0010">
+      UpgradeCode="1F6D3983-1B43-4F41-9204-4FAE6E4F0010"
+      InstallerVersion="500"
+      Compressed="yes"
+      Scope="perMachine">
 
-    <Package InstallerVersion="500"
-             Compressed="yes"
-             InstallScope="perMachine"
-             InstallPrivileges="elevated" />
-
+    <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
     <MediaTemplate EmbedCab="yes" />
 
-    <!-- UI estável sem INSTALLDIR -->
-    <UIRef Id="WixUI_Minimal"/>
-    <UIRef Id="WixUI_ErrorProgressText"/>
+    <ui:WixUI Id="WixUI_Minimal" />
 
     <!-- ================================================================
          Diretórios
          ================================================================ -->
-    <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramFilesFolder">
-        <Directory Id="PACTWARE" Name="PACTware 5.0">
-          <Directory Id="DTM700" Name="DTM700">
-            <Directory Id="JosueLab" Name="JosueLab">
-              <Directory Id="LasecHartCommDTM" Name="LasecHartCommDTM">
+    <StandardDirectory Id="ProgramFilesFolder">
+      <Directory Id="PACTWARE" Name="PACTware 5.0">
+        <Directory Id="DTM700" Name="DTM700">
+          <Directory Id="JosueLab" Name="JosueLab">
+            <Directory Id="LasecHartCommDTM" Name="LasecHartCommDTM">
 
-                <Component Id="DeviceTypeCatalogComponent"
-                           Guid="C4A111F0-A78C-4320-BBB7-34A93B910011">
-                  <File Id="DeviceTypeCatalog"
-                        Source="$(var.OutputDir)\DeviceTypeCatalog.xml"
+              <Component Id="DeviceTypeCatalogComponent"
+                         Guid="C4A111F0-A78C-4320-BBB7-34A93B910011">
+                <File Id="DeviceTypeCatalog"
+                      Source="$(var.PackagingDir)\DeviceTypeCatalog.xml"
+                      KeyPath="yes"/>
+              </Component>
+
+              <Directory Id="DTM" Name="Dtm">
+                <Component Id="DTMFilesComponent"
+                           Guid="C4A111F0-A78C-4320-BBB7-34A93B910010">
+
+                  <File Id="LasecHartCommDTMFile"
+                        Source="$(var.OutputDir)\LasecHartCommDTM.dll"
                         KeyPath="yes"/>
+
+                  <File Id="HartEngineFile"
+                        Source="$(var.OutputDir)\HartEngine.dll"/>
+
+                  <RegistryValue Root="HKLM"
+                                 Key="Software\JosueLab\LasecHartCommDTM"
+                                 Name="Installed"
+                                 Type="integer"
+                                 Value="1"/>
                 </Component>
-
-                <Directory Id="DTM" Name="Dtm">
-                  <Component Id="DTMFilesComponent"
-                             Guid="C4A111F0-A78C-4320-BBB7-34A93B910010">
-
-                    <File Id="LasecHartCommDTMFile"
-                          Source="$(var.OutputDir)\Dtm\LasecHartCommDTM.dll"
-                          KeyPath="yes"/>
-
-                    <File Id="HartEngineFile"
-                          Source="$(var.OutputDir)\Dtm\HartEngine.dll"/>
-
-                    <RegistryValue Root="HKLM"
-                                   Key="Software\JosueLab\LasecHartCommDTM"
-                                   Name="Installed"
-                                   Type="integer"
-                                   Value="1"
-                                   KeyPath="no"/>
-                  </Component>
-                </Directory>
-
               </Directory>
+
             </Directory>
           </Directory>
         </Directory>
       </Directory>
-    </Directory>
-
+    </StandardDirectory>
 
     <!-- Agrupamento -->
     <ComponentGroup Id="DTMFiles">
@@ -78,11 +71,9 @@
       <ComponentGroupRef Id="DTMFiles"/>
     </Feature>
 
-
     <!-- ================================================================
     Custom Actions — com permissão elevada
     ================================================================ -->
-    <!-- Registrar COM na visão 32-bits (WOW64), que é o que o PACTware 5.0 enxerga -->
     <CustomAction Id="RegisterDTM"
                   Directory="DTM"
                   Execute="deferred"
@@ -97,12 +88,11 @@
                   Return="ignore"
                   ExeCommand='"[WindowsFolder]Microsoft.NET\Framework\v4.0.30319\regasm.exe" /u "[#LasecHartCommDTMFile]"'/>
 
-
     <InstallExecuteSequence>
-      <Custom Action="RegisterDTM" After="InstallFiles">NOT Installed</Custom>
-      <Custom Action="UnregisterDTM" Before="RemoveFiles">Installed AND NOT UPGRADINGPRODUCTCODE</Custom>
+      <Custom Action="RegisterDTM" After="InstallFiles" Condition="NOT Installed"/>
+      <Custom Action="UnregisterDTM" Before="RemoveFiles" Condition="Installed AND NOT UPGRADINGPRODUCTCODE"/>
     </InstallExecuteSequence>
 
-  </Product>
+  </Package>
 
 </Wix>

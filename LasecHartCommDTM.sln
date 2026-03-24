@@ -1,0 +1,40 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "installer", "installer\installer.csproj", "{1ED552DC-C81F-B5C2-8CA8-BF8BDC334B01}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HartEngine", "src\HartEngine\HartEngine.csproj", "{5EF6DAF3-C141-F387-1D94-48783A0F0972}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LasecHartCommDTM", "src\LasecHartCommDTM\LasecHartCommDTM.csproj", "{28C97222-A544-880D-4C3C-1AC04587E688}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1ED552DC-C81F-B5C2-8CA8-BF8BDC334B01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1ED552DC-C81F-B5C2-8CA8-BF8BDC334B01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EF6DAF3-C141-F387-1D94-48783A0F0972}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EF6DAF3-C141-F387-1D94-48783A0F0972}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EF6DAF3-C141-F387-1D94-48783A0F0972}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EF6DAF3-C141-F387-1D94-48783A0F0972}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28C97222-A544-880D-4C3C-1AC04587E688}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28C97222-A544-880D-4C3C-1AC04587E688}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28C97222-A544-880D-4C3C-1AC04587E688}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28C97222-A544-880D-4C3C-1AC04587E688}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5EF6DAF3-C141-F387-1D94-48783A0F0972} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{28C97222-A544-880D-4C3C-1AC04587E688} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0D01565E-34E6-41BB-9F37-92CCACFFCAD7}
+	EndGlobalSection
+EndGlobal

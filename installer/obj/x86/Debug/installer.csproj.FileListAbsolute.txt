@@ -1,0 +1,6 @@
+C:\SourceCode\LasecHartCommDTM\installer\obj\x86\Debug\installer.csproj.CoreCompileInputs.cache
+C:\SourceCode\LasecHartCommDTM\installer\bin\x86\Debug\LasecHartCommDTM.msi
+C:\SourceCode\LasecHartCommDTM\installer\bin\x86\Debug\LasecHartCommDTM.wixpdb
+C:\SourceCode\LasecHartCommDTM\installer\obj\x86\Debug\LasecHartCommDTM.msi
+C:\SourceCode\LasecHartCommDTM\installer\obj\x86\Debug\LasecHartCommDTM.wixpdb
+C:\SourceCode\LasecHartCommDTM\installer\obj\x86\Debug\installer.csproj.BindTracking-neutral.txt

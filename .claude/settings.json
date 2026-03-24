@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"Get-ChildItem ''C:\\\\Program Files \\(x86\\)\\\\Softing\\\\PROFIdtm'' -Filter ''*.dll'' | Select-Object Name\")"
+    ]
+  }
+}

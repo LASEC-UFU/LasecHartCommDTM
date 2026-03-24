@@ -64,19 +64,12 @@ jobs:
           & $env:sn_path -k src/LasecHartCommDTM/LasecHartCommDTM.snk
       #######################################################################
 
-      # 🔹 Restaurar projetos
-      - name: Restore HartEngine
-        run: dotnet restore src/HartEngine/HartEngine.csproj
+      # 🔹 Restaurar e compilar solução completa (ProjectReference resolve a ordem)
+      - name: Restore solution
+        run: dotnet restore LasecHartCommDTM-1.sln
 
-      - name: Restore LasecHartCommDTM
-        run: dotnet restore src/LasecHartCommDTM/LasecHartCommDTM.csproj
-
-      # 🔹 Compilar (com strong name já no csproj)
-      - name: Build HartEngine
-        run: dotnet build src/HartEngine/HartEngine.csproj -c Release
-
-      - name: Build LasecHartCommDTM
-        run: dotnet build src/LasecHartCommDTM/LasecHartCommDTM.csproj -c Release
+      - name: Build solution
+        run: dotnet build LasecHartCommDTM-1.sln -c Release
 
       # 🔹 Package DTM700 folder
       - name: Package DTM700 folder

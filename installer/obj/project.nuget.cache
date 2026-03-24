@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "22ZX6U55SO8=",
+  "success": true,
+  "projectFilePath": "C:\\SourceCode\\LasecHartCommDTM\\installer\\installer.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\josuemorais\\.nuget\\packages\\wixtoolset.ui.wixext\\6.0.2\\wixtoolset.ui.wixext.6.0.2.nupkg.sha512"
+  ],
+  "logs": []
+}

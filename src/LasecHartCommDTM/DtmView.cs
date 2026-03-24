@@ -22,8 +22,12 @@ namespace LasecHartCommDTM
 
         public DtmView()
         {
-            _dtm = new CommDtm();
-            _dtm.Initialize(IntPtr.Zero);
+            _dtm = CommDtm.Current;
+            if (_dtm == null)
+            {
+                _dtm = new CommDtm();
+                _dtm.Initialize(IntPtr.Zero);
+            }
             InitializeComponents();
         }
 
@@ -39,7 +43,7 @@ namespace LasecHartCommDTM
 
             var lblMode = new Label { Left = 10, Top = 20, Width = 100, Text = "Mode:" };
             _cmbMode = new ComboBox { Left = 120, Top = 18, Width = 120, DropDownStyle = ComboBoxStyle.DropDownList };
-            _cmbMode.Items.AddRange(new object[] { "serial", "udp" });
+            _cmbMode.Items.AddRange(new object[] { "udp", "serial" });
             _cmbMode.SelectedIndex = 0;
 
             var lblSerialPort = new Label { Left = 10, Top = 50, Width = 100, Text = "Serial Port:" };
@@ -64,7 +68,7 @@ namespace LasecHartCommDTM
             _txtUdpHost = new TextBox { Left = 120, Top = 108, Width = 150, Text = "127.0.0.1" };
 
             var lblUdpPort = new Label { Left = 10, Top = 140, Width = 100, Text = "UDP Port:" };
-            _numUdpPort = new NumericUpDown { Left = 120, Top = 138, Width = 100, Minimum = 1, Maximum = 65535, Value = 20000 };
+            _numUdpPort = new NumericUpDown { Left = 120, Top = 138, Width = 100, Minimum = 1, Maximum = 65535, Value = 5094 };
 
             _btnApply = new Button { Left = 120, Top = 170, Width = 100, Text = "Apply" };
             _btnApply.Click += BtnApply_Click;
