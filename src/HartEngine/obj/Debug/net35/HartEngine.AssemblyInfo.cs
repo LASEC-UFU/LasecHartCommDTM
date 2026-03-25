@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("HartEngine")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8ce3b542f6ed17fbd7d8f6c4c5e3cffbbef775e5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8dc836058ad9fef4bf1371755f2acea1ee8c3908")]
 [assembly: System.Reflection.AssemblyProductAttribute("HartEngine")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HartEngine")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

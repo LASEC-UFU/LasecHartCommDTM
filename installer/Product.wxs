@@ -25,8 +25,8 @@
         <Directory Id="DTM700" Name="DTM700">
           <Directory Id="JosueLab" Name="JosueLab">
             <Directory Id="LasecHartCommDTM" Name="LasecHartCommDTM">
-
               <Directory Id="DTM" Name="Dtm">
+
                 <Component Id="DTMFilesComponent"
                            Guid="C4A111F0-A78C-4320-BBB7-34A93B910010">
 
@@ -34,14 +34,71 @@
                         Source="$(var.OutputDir)\LasecHartCommDTM.dll"
                         KeyPath="yes"/>
 
+                  <!-- ============================================================
+                       COM registration manual — mais confiável que regasm
+                       Para pacote x86, HKLM\SOFTWARE\Classes é redirecionado
+                       para WOW6432Node pelo WOW64
+                       ============================================================ -->
+
+                  <!-- ProgID -->
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\LasecHartCommDTM.CommDtm"
+                                 Type="string" Value="LasecHartCommDTM.CommDtm"/>
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\LasecHartCommDTM.CommDtm\CLSID"
+                                 Type="string" Value="{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}"/>
+
+                  <!-- CLSID base -->
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}"
+                                 Type="string" Value="LasecHartCommDTM.CommDtm"/>
+
+                  <!-- InprocServer32 — CLR loader (mscoree.dll) -->
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}\InprocServer32"
+                                 Type="string" Value="mscoree.dll"/>
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}\InprocServer32"
+                                 Name="ThreadingModel" Type="string" Value="Both"/>
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}\InprocServer32"
+                                 Name="Class" Type="string" Value="LasecHartCommDTM.CommDtm"/>
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}\InprocServer32"
+                                 Name="Assembly" Type="string"
+                                 Value="LasecHartCommDTM, Version=1.0.0.0, Culture=neutral, PublicKeyToken=45a43f6ca7aaed45"/>
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}\InprocServer32"
+                                 Name="RuntimeVersion" Type="string" Value="v2.0.50727"/>
+                  <!-- CodeBase: caminho do DLL em formato file:/// -->
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}\InprocServer32"
+                                 Name="CodeBase" Type="string"
+                                 Value="file:///[DTM]LasecHartCommDTM.dll"/>
+
+                  <!-- ============================================================
+                       FDT DTM Component Category — obrigatório para PACTware
+                       descobrir o DTM via ICatInformation::EnumClassesOfCategories
+                       ============================================================ -->
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\Component Categories\{036D1490-387B-11D4-86E1-00E0987270B9}"
+                                 Type="string" Value="FDT DTM"/>
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}\Implemented Categories\{036D1490-387B-11D4-86E1-00E0987270B9}"
+                                 Type="string" Value=""/>
+
+                  <!-- .NET Category — PACTware usa para rotear para CLR surrogate -->
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}\Implemented Categories\{62C8FE65-4EBB-45e7-B440-6E39B2CDBF29}"
+                                 Type="string" Value=""/>
+
+                  <!-- Marcador de instalação -->
                   <RegistryValue Root="HKLM"
                                  Key="Software\JosueLab\LasecHartCommDTM"
-                                 Name="Installed"
-                                 Type="integer"
-                                 Value="1"/>
+                                 Name="Installed" Type="integer" Value="1"/>
+
                 </Component>
               </Directory>
-
             </Directory>
           </Directory>
         </Directory>
@@ -59,28 +116,6 @@
              Level="1">
       <ComponentGroupRef Id="DTMFiles"/>
     </Feature>
-
-    <!-- ================================================================
-    Custom Actions — com permissão elevada
-    ================================================================ -->
-    <CustomAction Id="RegisterDTM"
-                  Directory="DTM"
-                  Execute="deferred"
-                  Impersonate="no"
-                  Return="check"
-                  ExeCommand='"[WindowsFolder]Microsoft.NET\Framework\v2.0.50727\regasm.exe" /codebase "[#LasecHartCommDTMFile]"'/>
-
-    <CustomAction Id="UnregisterDTM"
-                  Directory="DTM"
-                  Execute="deferred"
-                  Impersonate="no"
-                  Return="ignore"
-                  ExeCommand='"[WindowsFolder]Microsoft.NET\Framework\v2.0.50727\regasm.exe" /u "[#LasecHartCommDTMFile]"'/>
-
-    <InstallExecuteSequence>
-      <Custom Action="RegisterDTM" After="InstallFiles" Condition="NOT Installed"/>
-      <Custom Action="UnregisterDTM" Before="RemoveFiles" Condition="Installed AND NOT UPGRADINGPRODUCTCODE"/>
-    </InstallExecuteSequence>
 
   </Package>
 
