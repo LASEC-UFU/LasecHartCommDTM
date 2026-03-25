@@ -1,7 +1,25 @@
 {
   "permissions": {
     "allow": [
-      "Bash(powershell -Command \"Get-ChildItem ''C:\\\\Program Files \\(x86\\)\\\\Softing\\\\PROFIdtm'' -Filter ''*.dll'' | Select-Object Name\")"
+      "Bash(powershell -Command \"Get-ChildItem ''C:\\\\Program Files \\(x86\\)\\\\Softing\\\\PROFIdtm'' -Filter ''*.dll'' | Select-Object Name\")",
+      "Bash(powershell -Command \"Get-Content ''C:\\\\ProgramData\\\\PACTware Consortium e.V\\\\PACTware 5.0\\\\pactware.log'' -ErrorAction SilentlyContinue | Select-Object -First 200\")",
+      "Bash(powershell -Command \"Test-Path ''C:\\\\ProgramData\\\\PACTware Consortium e.V\\\\PACTware 5.0\\\\pactware.log''\")",
+      "Bash(powershell -Command \":*)",
+      "Bash(dotnet run:*)",
+      "Read(//c/Program Files \\(x86\\)/PACTware 5.0/DTM700/JosueLab/LasecHartCommDTM/**)",
+      "Bash(find '/c/Program Files \\(x86\\)/PACTware 5.0/DTM700' '/c/Program Files \\(x86\\)/PACTware Consortium/PACTware 5.0' -name DeviceTypeCatalog.xml)",
+      "Read(//c/Program Files \\(x86\\)/Softing/**)",
+      "Bash(powershell.exe -Command \"ls ''C:\\\\Program Files \\(x86\\)\\\\PACTware Consortium\\\\PACTware 5.0\\\\ADDINS\\\\''\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File \"C:\\\\SourceCode\\\\LasecHartCommDTM\\\\enable_dump.ps1\")",
+      "Bash(powershell.exe -Command \"[System.Reflection.Assembly]::ReflectionOnlyLoadFrom\\(''C:\\\\Program Files \\(x86\\)\\\\PACTware Consortium\\\\PACTware 5.0\\\\PACTware.exe''\\).ImageRuntimeVersion\")",
+      "Bash(powershell.exe -Command \"Get-WinEvent -LogName Application -MaxEvents 100 | Where-Object { $_.Id -eq 1000 -or $_.Id -eq 1026 } | Where-Object { $_.TimeCreated -gt \\(Get-Date\\).AddHours\\(-2\\) } | Select-Object TimeCreated,Id,@{n=''App'';e={\\($_.Message -split ''\\\\n''\\)[0]}} | Format-Table -AutoSize\")",
+      "Bash(powershell.exe -Command \":*)",
+      "Bash(powershell.exe -Command \"[System.Reflection.Assembly]::ReflectionOnlyLoadFrom\\(''C:\\\\Program Files \\(x86\\)\\\\PACTware 5.0\\\\DTM700\\\\JosueLab\\\\LasecHartCommDTM\\\\Dtm\\\\HartEngine.dll''\\).ImageRuntimeVersion\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File \"C:\\\\SourceCode\\\\LasecHartCommDTM\\\\deploy.ps1\")",
+      "Bash(powershell.exe -Command \"[System.Reflection.Assembly]::ReflectionOnlyLoadFrom\\(''C:\\\\Program Files \\(x86\\)\\\\PACTware 5.0\\\\DTM700\\\\JosueLab\\\\LasecHartCommDTM\\\\Dtm\\\\LasecHartCommDTM.dll''\\).ImageRuntimeVersion\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Program Files (x86)\\PACTware Consortium\\PACTware 5.0"
     ]
   }
 }

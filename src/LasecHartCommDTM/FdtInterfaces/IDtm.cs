@@ -1,20 +1,38 @@
-using System;
 using System.Runtime.InteropServices;
 
 namespace LasecHartCommDTM.FdtInterfaces
 {
-    [Guid("B4B6B3E7-639D-460B-B9A0-6C7F7EB20001")]
+    // Interface FDT 1.x oficial — GUID conforme padrão FDT Group
+    [Guid("036d1481-387b-11d4-86e1-00e0987270b9")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [ComVisible(true)]
     public interface IDtm
     {
-        void Initialize(IntPtr hostHandle);
-        void Uninitialize();
+        bool Environment(
+            [MarshalAs(UnmanagedType.BStr)] string systemTag,
+            [MarshalAs(UnmanagedType.Interface)] IFdtContainer container);
 
-        void GetDeviceInfo(
-            [MarshalAs(UnmanagedType.BStr)] out string deviceTag,
-            [MarshalAs(UnmanagedType.BStr)] out string deviceType,
-            [MarshalAs(UnmanagedType.BStr)] out string vendor,
-            [MarshalAs(UnmanagedType.BStr)] out string version);
+        bool InitNew([MarshalAs(UnmanagedType.BStr)] string deviceType);
+
+        bool Config([MarshalAs(UnmanagedType.BStr)] string userInfo);
+
+        bool SetCommunication(
+            [MarshalAs(UnmanagedType.Interface)] IFdtCommunication communication);
+
+        bool PrepareToRelease();
+        bool PrepareToReleaseCommunication();
+        bool ReleaseCommunication();
+        bool PrepareToDelete();
+
+        bool SetLanguage(int languageId);
+
+        [return: MarshalAs(UnmanagedType.BStr)] string GetFunctions(
+            [MarshalAs(UnmanagedType.BStr)] string operationState);
+
+        bool InvokeFunctionRequest(
+            [MarshalAs(UnmanagedType.BStr)] string invokeId,
+            [MarshalAs(UnmanagedType.BStr)] string functionCall);
+
+        bool PrivateDialogEnabled(bool enabled);
     }
 }

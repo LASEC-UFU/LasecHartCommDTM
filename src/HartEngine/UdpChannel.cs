@@ -13,13 +13,13 @@ namespace HartEngine
 
         public UdpChannel(string host, int port)
         {
-            _host = string.IsNullOrWhiteSpace(host) ? "127.0.0.1" : host;
+            _host = string.IsNullOrEmpty(host) || host.Trim().Length == 0 ? "127.0.0.1" : host;
             _port = port <= 0 ? 20000 : port;
         }
 
         public void Open()
         {
-            _client?.Dispose();
+            if (_client != null) { _client.Close(); _client = null; }
             _remoteEndPoint = new IPEndPoint(IPAddress.Parse(_host), _port);
             _client = new UdpClient();
         }
@@ -37,13 +37,13 @@ namespace HartEngine
             }
             catch (SocketException)
             {
-                return Array.Empty<byte>();
+                return new byte[0];
             }
         }
 
         public void Dispose()
         {
-            _client?.Dispose();
+            if (_client != null) { _client.Close(); _client = null; }
         }
     }
 }

@@ -26,7 +26,7 @@ namespace LasecHartCommDTM
             if (_dtm == null)
             {
                 _dtm = new CommDtm();
-                _dtm.Initialize(IntPtr.Zero);
+                _dtm.InitNew("CommDTM");
             }
             InitializeComponents();
         }

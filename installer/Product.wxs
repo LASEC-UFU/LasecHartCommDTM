@@ -26,13 +26,6 @@
           <Directory Id="JosueLab" Name="JosueLab">
             <Directory Id="LasecHartCommDTM" Name="LasecHartCommDTM">
 
-              <Component Id="DeviceTypeCatalogComponent"
-                         Guid="C4A111F0-A78C-4320-BBB7-34A93B910011">
-                <File Id="DeviceTypeCatalog"
-                      Source="$(var.PackagingDir)\DeviceTypeCatalog.xml"
-                      KeyPath="yes"/>
-              </Component>
-
               <Directory Id="DTM" Name="Dtm">
                 <Component Id="DTMFilesComponent"
                            Guid="C4A111F0-A78C-4320-BBB7-34A93B910010">
@@ -40,9 +33,6 @@
                   <File Id="LasecHartCommDTMFile"
                         Source="$(var.OutputDir)\LasecHartCommDTM.dll"
                         KeyPath="yes"/>
-
-                  <File Id="HartEngineFile"
-                        Source="$(var.OutputDir)\HartEngine.dll"/>
 
                   <RegistryValue Root="HKLM"
                                  Key="Software\JosueLab\LasecHartCommDTM"
@@ -60,7 +50,6 @@
 
     <!-- Agrupamento -->
     <ComponentGroup Id="DTMFiles">
-      <ComponentRef Id="DeviceTypeCatalogComponent"/>
       <ComponentRef Id="DTMFilesComponent"/>
     </ComponentGroup>
 
@@ -79,14 +68,14 @@
                   Execute="deferred"
                   Impersonate="no"
                   Return="check"
-                  ExeCommand='"[WindowsFolder]Microsoft.NET\Framework\v4.0.30319\regasm.exe" /codebase "[#LasecHartCommDTMFile]"'/>
+                  ExeCommand='"[WindowsFolder]Microsoft.NET\Framework\v2.0.50727\regasm.exe" /codebase "[#LasecHartCommDTMFile]"'/>
 
     <CustomAction Id="UnregisterDTM"
                   Directory="DTM"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore"
-                  ExeCommand='"[WindowsFolder]Microsoft.NET\Framework\v4.0.30319\regasm.exe" /u "[#LasecHartCommDTMFile]"'/>
+                  ExeCommand='"[WindowsFolder]Microsoft.NET\Framework\v2.0.50727\regasm.exe" /u "[#LasecHartCommDTMFile]"'/>
 
     <InstallExecuteSequence>
       <Custom Action="RegisterDTM" After="InstallFiles" Condition="NOT Installed"/>

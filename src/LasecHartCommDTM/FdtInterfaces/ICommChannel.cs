@@ -1,24 +1,33 @@
-using System;
 using System.Runtime.InteropServices;
 
 namespace LasecHartCommDTM.FdtInterfaces
 {
-    [Guid("B4B6B3E7-639D-460B-B9A0-6C7F7EB20002")]
+    // Interface FDT 1.x oficial para CommDTM — GUID conforme padrão FDT Group
+    [Guid("039ecfc4-9ca8-44e6-944d-b37f288a34d8")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [ComVisible(true)]
-    public interface ICommChannel
+    public interface IFdtCommunication
     {
-        void Open();
-        void Close();
+        void Abort([MarshalAs(UnmanagedType.BStr)] string fieldbusFrame);
 
-        void SendFrame(
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] byte[] request,
-            int length,
-            int timeoutMs);
+        bool ConnectRequest(
+            [MarshalAs(UnmanagedType.Interface)] IFdtCommunicationEvents callBack,
+            [MarshalAs(UnmanagedType.BStr)] string invokeId,
+            [MarshalAs(UnmanagedType.BStr)] string protocolId,
+            [MarshalAs(UnmanagedType.BStr)] string fieldbusFrame);
 
-        int ReceiveFrame(
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] byte[] buffer,
-            int bufferLength,
-            int timeoutMs);
+        bool DisconnectRequest(
+            [MarshalAs(UnmanagedType.BStr)] string invokeId,
+            [MarshalAs(UnmanagedType.BStr)] string fieldbusFrame);
+
+        bool TransactionRequest(
+            [MarshalAs(UnmanagedType.BStr)] string invokeId,
+            [MarshalAs(UnmanagedType.BStr)] string fieldbusFrame);
+
+        [return: MarshalAs(UnmanagedType.BStr)] string GetSupportedProtocols();
+
+        bool SequenceBegin([MarshalAs(UnmanagedType.BStr)] string fieldbusFrame);
+        bool SequenceStart([MarshalAs(UnmanagedType.BStr)] string fieldbusFrame);
+        bool SequenceEnd([MarshalAs(UnmanagedType.BStr)] string fieldbusFrame);
     }
 }

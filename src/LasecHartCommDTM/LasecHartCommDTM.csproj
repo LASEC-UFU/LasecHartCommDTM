@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net35</TargetFramework>
 
     <!-- WINFORMS -->
     <UseWindowsForms>true</UseWindowsForms>
@@ -21,8 +21,12 @@
     <Reference Include="System" />
   </ItemGroup>
 
+  <!-- Merge HartEngine source directly to avoid separate DLL dependency -->
   <ItemGroup>
-    <ProjectReference Include="..\HartEngine\HartEngine.csproj" />
+    <Compile Include="..\HartEngine\IChannel.cs" />
+    <Compile Include="..\HartEngine\ChannelManager.cs" />
+    <Compile Include="..\HartEngine\SerialChannel.cs" />
+    <Compile Include="..\HartEngine\UdpChannel.cs" />
   </ItemGroup>
 
 </Project>

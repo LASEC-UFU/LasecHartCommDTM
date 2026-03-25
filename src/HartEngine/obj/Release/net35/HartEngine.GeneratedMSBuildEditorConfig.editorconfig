@@ -1,0 +1,8 @@
+is_global = true
+build_property.RootNamespace = HartEngine
+build_property.ProjectDir = C:\SourceCode\LasecHartCommDTM\src\HartEngine\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.CsWinRTUseWindowsUIXamlProjections = false
+build_property.EffectiveAnalysisLevelStyle = 
+build_property.EnableCodeStyleSeverity = 

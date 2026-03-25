@@ -1,0 +1,10 @@
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\Release\net35\LasecHartCommDTM.csproj.AssemblyReference.cache
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\Release\net35\LasecHartCommDTM.GeneratedMSBuildEditorConfig.editorconfig
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\Release\net35\LasecHartCommDTM.AssemblyInfoInputs.cache
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\Release\net35\LasecHartCommDTM.AssemblyInfo.cs
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\Release\net35\LasecHartCommDTM.csproj.CoreCompileInputs.cache
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\Release\net35\LasecHartCommDTM.sourcelink.json
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\bin\Release\net35\LasecHartCommDTM.dll
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\bin\Release\net35\LasecHartCommDTM.pdb
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\Release\net35\LasecHartCommDTM.dll
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\Release\net35\LasecHartCommDTM.pdb

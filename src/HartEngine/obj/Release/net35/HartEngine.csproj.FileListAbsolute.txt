@@ -1,0 +1,10 @@
+C:\SourceCode\LasecHartCommDTM\src\HartEngine\obj\Release\net35\HartEngine.csproj.AssemblyReference.cache
+C:\SourceCode\LasecHartCommDTM\src\HartEngine\obj\Release\net35\HartEngine.GeneratedMSBuildEditorConfig.editorconfig
+C:\SourceCode\LasecHartCommDTM\src\HartEngine\obj\Release\net35\HartEngine.AssemblyInfoInputs.cache
+C:\SourceCode\LasecHartCommDTM\src\HartEngine\obj\Release\net35\HartEngine.AssemblyInfo.cs
+C:\SourceCode\LasecHartCommDTM\src\HartEngine\obj\Release\net35\HartEngine.csproj.CoreCompileInputs.cache
+C:\SourceCode\LasecHartCommDTM\src\HartEngine\obj\Release\net35\HartEngine.sourcelink.json
+C:\SourceCode\LasecHartCommDTM\src\HartEngine\bin\Release\net35\HartEngine.dll
+C:\SourceCode\LasecHartCommDTM\src\HartEngine\bin\Release\net35\HartEngine.pdb
+C:\SourceCode\LasecHartCommDTM\src\HartEngine\obj\Release\net35\HartEngine.dll
+C:\SourceCode\LasecHartCommDTM\src\HartEngine\obj\Release\net35\HartEngine.pdb

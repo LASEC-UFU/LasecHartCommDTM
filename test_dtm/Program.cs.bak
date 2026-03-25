@@ -1,0 +1,90 @@
+// Teste 32-bit: simula o QueryInterface que o PACTware faz ao escanear o catálogo
+using System;
+using System.Runtime.InteropServices;
+
+class Program
+{
+    [DllImport("ole32.dll")]
+    static extern int CoCreateInstance(ref Guid rclsid, IntPtr pUnkOuter, uint dwClsContext,
+        ref Guid riid, out IntPtr ppv);
+
+    static readonly Guid IID_IUnknown         = new Guid("00000000-0000-0000-C000-000000000046");
+    static readonly Guid IID_IDtmInformation  = new Guid("036d147f-387b-11d4-86e1-00e0987270b9");
+    static readonly Guid IID_IDtm             = new Guid("036d1481-387b-11d4-86e1-00e0987270b9");
+    static readonly Guid IID_IFdtCommunication= new Guid("039ecfc4-9ca8-44e6-944d-b37f288a34d8");
+    static Guid CLSID_CommDtm = new Guid("B4B6B3E7-639D-460B-B9A0-6C7F7EB20010");
+
+    const uint CLSCTX_INPROC_SERVER = 1;
+
+    static void Main()
+    {
+        Console.WriteLine("=== Teste COM 32-bit (simula PACTware) ===");
+        Console.WriteLine("Bitness: " + (IntPtr.Size == 4 ? "32-bit" : "64-bit"));
+        Console.WriteLine();
+
+        IntPtr pUnk = IntPtr.Zero;
+        var iidUnk = IID_IUnknown;
+
+        Console.WriteLine("1. CoCreateInstance...");
+        int hr = CoCreateInstance(ref CLSID_CommDtm, IntPtr.Zero, CLSCTX_INPROC_SERVER,
+                                  ref iidUnk, out pUnk);
+        if (hr != 0) { Console.WriteLine("   ERRO HR=0x" + hr.ToString("X8")); Pause(); return; }
+        Console.WriteLine("   OK");
+
+        TestQI(pUnk, "IDtmInformation", IID_IDtmInformation, callGetInfo: true);
+        TestQI(pUnk, "IDtm",            IID_IDtm);
+        TestQI(pUnk, "IFdtCommunication", IID_IFdtCommunication);
+
+        Marshal.Release(pUnk);
+        Pause();
+    }
+
+    static void TestQI(IntPtr pUnk, string name, Guid iid, bool callGetInfo = false)
+    {
+        Console.Write("2. QI para " + name + "... ");
+        var g = iid;
+        int hr = Marshal.QueryInterface(pUnk, ref g, out IntPtr pIface);
+        if (hr != 0)
+        {
+            Console.WriteLine("FALHOU (HR=0x" + hr.ToString("X8") + ")");
+            Console.WriteLine("   >>> PACTware rejeita o DTM neste ponto <<<");
+            return;
+        }
+        Console.WriteLine("OK");
+
+        if (callGetInfo)
+        {
+            Console.WriteLine("   Chamando GetInformation() via vtable...");
+            try
+            {
+                // IDtmInformation vtable: [0]=QI [1]=AddRef [2]=Release [3]=GetInformation
+                var vtable = Marshal.ReadIntPtr(pIface);
+                var fnPtr  = Marshal.ReadIntPtr(vtable, 3 * IntPtr.Size);
+                var fn     = (GetInformationDelegate)Marshal.GetDelegateForFunctionPointer(
+                                 fnPtr, typeof(GetInformationDelegate));
+                IntPtr bstrOut;
+                int hrCall = fn(pIface, out bstrOut);
+                if (hrCall == 0 && bstrOut != IntPtr.Zero)
+                {
+                    string xml = Marshal.PtrToStringBSTR(bstrOut);
+                    Marshal.FreeBSTR(bstrOut);
+                    Console.WriteLine("   OK (" + xml.Length + " chars)");
+                    Console.WriteLine(xml.Length > 300 ? xml.Substring(0, 300) + "..." : xml);
+                }
+                else
+                    Console.WriteLine("   GetInformation retornou HR=0x" + hrCall.ToString("X8"));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("   Exceção: " + ex.Message);
+            }
+        }
+
+        Marshal.Release(pIface);
+    }
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    delegate int GetInformationDelegate(IntPtr pThis, out IntPtr bstr);
+
+    static void Pause() { Console.WriteLine("\nPressione Enter..."); Console.ReadLine(); }
+}

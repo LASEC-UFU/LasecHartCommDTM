@@ -17,14 +17,14 @@
           "C:\\Users\\josuemorais\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "net48"
+          "net35"
         ],
         "sources": {
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net48": {
-            "targetAlias": "net48",
+          "net35": {
+            "targetAlias": "net35",
             "projectReferences": {}
           }
         },
@@ -41,8 +41,8 @@
         "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
-        "net48": {
-          "targetAlias": "net48",
+        "net35": {
+          "targetAlias": "net35",
           "dependencies": {
             "Microsoft.NETFramework.ReferenceAssemblies": {
               "suppressParent": "All",
