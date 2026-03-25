@@ -5,34 +5,31 @@ namespace HartEngine
     public class ChannelManager : IDisposable
     {
         private IChannel _channel;
-        private string _mode;
-        private string _serialPort;
-        private string _udpHost;
-        private int _udpPort;
-        private int _baudRate;
+        private string _protocol;
+        private string _ipAddress;
+        private int _ipPort;
+        private int _timeout;
 
-        public void Configure(string mode, string serialPort, string udpHost, int udpPort, int baudRate)
+        /// <summary>
+        /// Configura o canal de comunicação IP (TCP ou UDP).
+        /// </summary>
+        public void Configure(string protocol, string ipAddress, int ipPort, int timeout)
         {
-            _mode = mode?.ToLowerInvariant();
-            _serialPort = serialPort;
-            _udpHost = udpHost;
-            _udpPort = udpPort;
-            _baudRate = baudRate <= 0 ? 9600 : baudRate;
+            _protocol = (protocol ?? "udp").ToLowerInvariant();
+            _ipAddress = string.IsNullOrEmpty(ipAddress) ? "127.0.0.1" : ipAddress.Trim();
+            _ipPort = ipPort <= 0 ? 5094 : ipPort;
+            _timeout = timeout <= 0 ? 5000 : timeout;
 
             _channel?.Dispose();
             _channel = null;
 
-            if (_mode == "serial")
+            if (_protocol == "tcp")
             {
-                _channel = new SerialChannel(_serialPort, _baudRate);
-            }
-            else if (_mode == "udp")
-            {
-                _channel = new UdpChannel(_udpHost, _udpPort);
+                _channel = new TcpChannel(_ipAddress, _ipPort);
             }
             else
             {
-                throw new ArgumentException("mode must be 'serial' or 'udp'");
+                _channel = new UdpChannel(_ipAddress, _ipPort);
             }
 
             _channel.Open();
@@ -44,7 +41,7 @@ namespace HartEngine
             {
                 throw new InvalidOperationException("Channel not configured. Call Configure() first.");
             }
-            return _channel.SendAndReceive(request, timeoutMs);
+            return _channel.SendAndReceive(request, timeoutMs > 0 ? timeoutMs : _timeout);
         }
 
         public void Dispose()

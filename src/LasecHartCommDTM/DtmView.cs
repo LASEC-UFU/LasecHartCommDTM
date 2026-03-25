@@ -1,8 +1,7 @@
 using System;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using LasecHartCommDTM.FdtInterfaces;
+using LasecHartCommDTM.FdtInterfaces;  // IDtmView only
 
 namespace LasecHartCommDTM
 {
@@ -13,11 +12,16 @@ namespace LasecHartCommDTM
     {
         private readonly CommDtm _dtm;
 
-        private ComboBox _cmbMode;
-        private ComboBox _cmbSerialPort;
-        private TextBox _txtUdpHost;
-        private NumericUpDown _numUdpPort;
-        private NumericUpDown _numBaud;
+        private TextBox _txtIpAddress;
+        private NumericUpDown _numIpPort;
+        private ComboBox _cmbProtocol;
+        private CheckBox _chkPrimaryMaster;
+        private NumericUpDown _numPreambleCount;
+        private NumericUpDown _numRetryCount;
+        private NumericUpDown _numScanStart;
+        private NumericUpDown _numScanStop;
+        private CheckBox _chkBurstMode;
+        private NumericUpDown _numTimeout;
         private Button _btnApply;
 
         public DtmView()
@@ -29,79 +33,128 @@ namespace LasecHartCommDTM
                 _dtm.InitNew("CommDTM");
             }
             InitializeComponents();
+            LoadCurrentValues();
         }
 
         private void InitializeComponents()
         {
-            Text = "Lasec HART Communication DTM - Config";
-            Width = 400;
-            Height = 250;
+            Text = "Lasec HART Communication DTM - Configuration";
+            Width = 420;
+            Height = 430;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = true;
             StartPosition = FormStartPosition.CenterScreen;
 
-            var lblMode = new Label { Left = 10, Top = 20, Width = 100, Text = "Mode:" };
-            _cmbMode = new ComboBox { Left = 120, Top = 18, Width = 120, DropDownStyle = ComboBoxStyle.DropDownList };
-            _cmbMode.Items.AddRange(new object[] { "udp", "serial" });
-            _cmbMode.SelectedIndex = 0;
+            int y = 15;
+            int lblX = 15, ctrlX = 160, lblW = 135, ctrlW = 200;
+            int rowH = 30;
 
-            var lblSerialPort = new Label { Left = 10, Top = 50, Width = 100, Text = "Serial Port:" };
-            _cmbSerialPort = new ComboBox { Left = 120, Top = 48, Width = 120, DropDownStyle = ComboBoxStyle.DropDownList };
-            try
-            {
-                var ports = System.IO.Ports.SerialPort.GetPortNames().OrderBy(p => p).ToArray();
-                if (ports.Length == 0) ports = new[] { "COM1" };
-                _cmbSerialPort.Items.AddRange(ports);
-                _cmbSerialPort.SelectedIndex = 0;
-            }
-            catch
-            {
-                _cmbSerialPort.Items.Add("COM1");
-                _cmbSerialPort.SelectedIndex = 0;
-            }
+            // IP Address
+            Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "IP Address:" });
+            _txtIpAddress = new TextBox { Left = ctrlX, Top = y, Width = ctrlW, Text = "127.0.0.1" };
+            Controls.Add(_txtIpAddress);
+            y += rowH;
 
-            var lblBaud = new Label { Left = 10, Top = 80, Width = 100, Text = "Baud rate:" };
-            _numBaud = new NumericUpDown { Left = 120, Top = 78, Width = 100, Minimum = 120, Maximum = 115200, Value = 1200, Increment = 120 };
+            // IP Port
+            Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "IP Port:" });
+            _numIpPort = new NumericUpDown { Left = ctrlX, Top = y, Width = 100, Minimum = 1, Maximum = 65535, Value = 5094 };
+            Controls.Add(_numIpPort);
+            y += rowH;
 
-            var lblUdpHost = new Label { Left = 10, Top = 110, Width = 100, Text = "UDP Host:" };
-            _txtUdpHost = new TextBox { Left = 120, Top = 108, Width = 150, Text = "127.0.0.1" };
+            // Protocol
+            Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "Protocol:" });
+            _cmbProtocol = new ComboBox { Left = ctrlX, Top = y, Width = 100, DropDownStyle = ComboBoxStyle.DropDownList };
+            _cmbProtocol.Items.AddRange(new object[] { "udp", "tcp" });
+            _cmbProtocol.SelectedIndex = 0;
+            Controls.Add(_cmbProtocol);
+            y += rowH;
 
-            var lblUdpPort = new Label { Left = 10, Top = 140, Width = 100, Text = "UDP Port:" };
-            _numUdpPort = new NumericUpDown { Left = 120, Top = 138, Width = 100, Minimum = 1, Maximum = 65535, Value = 5094 };
+            // Primary Master
+            _chkPrimaryMaster = new CheckBox { Left = ctrlX, Top = y, Width = ctrlW, Text = "Primary Master", Checked = true };
+            Controls.Add(_chkPrimaryMaster);
+            y += rowH;
 
-            _btnApply = new Button { Left = 120, Top = 170, Width = 100, Text = "Apply" };
+            // Preamble Count
+            Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "Preamble Count:" });
+            _numPreambleCount = new NumericUpDown { Left = ctrlX, Top = y, Width = 100, Minimum = 5, Maximum = 20, Value = 5 };
+            Controls.Add(_numPreambleCount);
+            y += rowH;
+
+            // Retry Count
+            Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "Retry Count:" });
+            _numRetryCount = new NumericUpDown { Left = ctrlX, Top = y, Width = 100, Minimum = 1, Maximum = 10, Value = 3 };
+            Controls.Add(_numRetryCount);
+            y += rowH;
+
+            // Scan Start
+            Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "Scan Start Address:" });
+            _numScanStart = new NumericUpDown { Left = ctrlX, Top = y, Width = 100, Minimum = 0, Maximum = 63, Value = 0 };
+            Controls.Add(_numScanStart);
+            y += rowH;
+
+            // Scan Stop
+            Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "Scan Stop Address:" });
+            _numScanStop = new NumericUpDown { Left = ctrlX, Top = y, Width = 100, Minimum = 0, Maximum = 63, Value = 0 };
+            Controls.Add(_numScanStop);
+            y += rowH;
+
+            // Burst Mode
+            _chkBurstMode = new CheckBox { Left = ctrlX, Top = y, Width = ctrlW, Text = "Burst Mode" };
+            Controls.Add(_chkBurstMode);
+            y += rowH;
+
+            // Timeout
+            Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "Timeout (ms):" });
+            _numTimeout = new NumericUpDown { Left = ctrlX, Top = y, Width = 100, Minimum = 500, Maximum = 60000, Value = 5000, Increment = 500 };
+            Controls.Add(_numTimeout);
+            y += rowH + 5;
+
+            // Apply button
+            _btnApply = new Button { Left = ctrlX, Top = y, Width = 100, Height = 28, Text = "Apply" };
             _btnApply.Click += BtnApply_Click;
-
-            Controls.Add(lblMode);
-            Controls.Add(_cmbMode);
-            Controls.Add(lblSerialPort);
-            Controls.Add(_cmbSerialPort);
-            Controls.Add(lblBaud);
-            Controls.Add(_numBaud);
-            Controls.Add(lblUdpHost);
-            Controls.Add(_txtUdpHost);
-            Controls.Add(lblUdpPort);
-            Controls.Add(_numUdpPort);
             Controls.Add(_btnApply);
+        }
+
+        private void LoadCurrentValues()
+        {
+            if (_dtm == null) return;
+            _txtIpAddress.Text = _dtm._ipAddress;
+            _numIpPort.Value = Math.Max(_numIpPort.Minimum, Math.Min(_numIpPort.Maximum, _dtm._ipPort));
+            _cmbProtocol.SelectedItem = _dtm._protocol;
+            if (_cmbProtocol.SelectedIndex < 0) _cmbProtocol.SelectedIndex = 0;
+            _chkPrimaryMaster.Checked = _dtm._primaryMaster;
+            _numPreambleCount.Value = Math.Max(_numPreambleCount.Minimum, Math.Min(_numPreambleCount.Maximum, _dtm._preambleCount));
+            _numRetryCount.Value = Math.Max(_numRetryCount.Minimum, Math.Min(_numRetryCount.Maximum, _dtm._retryCount));
+            _numScanStart.Value = Math.Max(_numScanStart.Minimum, Math.Min(_numScanStart.Maximum, _dtm._scanStart));
+            _numScanStop.Value = Math.Max(_numScanStop.Minimum, Math.Min(_numScanStop.Maximum, _dtm._scanStop));
+            _chkBurstMode.Checked = _dtm._burstMode;
+            _numTimeout.Value = Math.Max(_numTimeout.Minimum, Math.Min(_numTimeout.Maximum, _dtm._timeout));
         }
 
         private void BtnApply_Click(object sender, EventArgs e)
         {
             try
             {
-                string mode = _cmbMode.SelectedItem.ToString();
-                string serialPort = _cmbSerialPort.SelectedItem.ToString();
-                string host = _txtUdpHost.Text;
-                int port = (int)_numUdpPort.Value;
-                int baud = (int)_numBaud.Value;
+                _dtm.ApplyConfiguration(
+                    _txtIpAddress.Text,
+                    (int)_numIpPort.Value,
+                    _cmbProtocol.SelectedItem.ToString(),
+                    _chkPrimaryMaster.Checked,
+                    (int)_numPreambleCount.Value,
+                    (int)_numRetryCount.Value,
+                    (int)_numScanStart.Value,
+                    (int)_numScanStop.Value,
+                    _chkBurstMode.Checked,
+                    (int)_numTimeout.Value);
 
-                _dtm.Configure(mode, serialPort, host, port, baud);
-                MessageBox.Show("Configuration applied.", "Lasec HART Communication DTM", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Configuration applied.", "Lasec HART Communication DTM",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error applying configuration:\n" + ex.Message, "Lasec HART Communication DTM", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error applying configuration:\n" + ex.Message,
+                    "Lasec HART Communication DTM", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net35</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
 
     <!-- WINFORMS -->
     <UseWindowsForms>true</UseWindowsForms>
@@ -19,14 +19,26 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="System" />
+    <!-- Jigfdt interop – embed interfaces for Type Equivalence with PACTware -->
+    <Reference Include="Jigfdt.fdt100">
+      <HintPath>C:\Program Files (x86)\PACTware Consortium\PACTware 5.0\Jigfdt.fdt100.dll</HintPath>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <!-- Merge HartEngine source directly to avoid separate DLL dependency -->
   <ItemGroup>
     <Compile Include="..\HartEngine\IChannel.cs" />
     <Compile Include="..\HartEngine\ChannelManager.cs" />
-    <Compile Include="..\HartEngine\SerialChannel.cs" />
     <Compile Include="..\HartEngine\UdpChannel.cs" />
+    <Compile Include="..\HartEngine\TcpChannel.cs" />
+    <!-- Exclude FDT interfaces replaced by embedded Jigfdt types (keep IDtmView) -->
+    <Compile Remove="FdtInterfaces\IDtmInformation.cs" />
+    <Compile Remove="FdtInterfaces\IDtm.cs" />
+    <Compile Remove="FdtInterfaces\ICommChannel.cs" />
+    <Compile Remove="FdtInterfaces\IFdtCommunicationEvents.cs" />
+    <Compile Remove="FdtInterfaces\IFdtContainer.cs" />
   </ItemGroup>
 
 </Project>

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LasecHartCommDTM")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8dc836058ad9fef4bf1371755f2acea1ee8c3908")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+27ee23b311591d0bc2a817f32a7f51e7f26605a2")]
 [assembly: System.Reflection.AssemblyProductAttribute("LasecHartCommDTM")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LasecHartCommDTM")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

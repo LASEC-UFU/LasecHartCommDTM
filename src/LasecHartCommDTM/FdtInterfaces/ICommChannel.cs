@@ -4,7 +4,7 @@ namespace LasecHartCommDTM.FdtInterfaces
 {
     // Interface FDT 1.x oficial para CommDTM — GUID conforme padrão FDT Group
     [Guid("039ecfc4-9ca8-44e6-944d-b37f288a34d8")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [InterfaceType(ComInterfaceType.InterfaceIsDual)]
     [ComVisible(true)]
     public interface IFdtCommunication
     {

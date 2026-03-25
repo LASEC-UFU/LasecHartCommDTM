@@ -69,7 +69,7 @@
                                  Value="LasecHartCommDTM, Version=1.0.0.0, Culture=neutral, PublicKeyToken=45a43f6ca7aaed45"/>
                   <RegistryValue Root="HKLM"
                                  Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}\InprocServer32"
-                                 Name="RuntimeVersion" Type="string" Value="v2.0.50727"/>
+                                 Name="RuntimeVersion" Type="string" Value="v4.0.30319"/>
                   <!-- CodeBase: caminho do DLL em formato file:/// -->
                   <RegistryValue Root="HKLM"
                                  Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}\InprocServer32"
@@ -77,14 +77,34 @@
                                  Value="file:///[DTM]LasecHartCommDTM.dll"/>
 
                   <!-- ============================================================
-                       FDT DTM Component Category — obrigatório para PACTware
-                       descobrir o DTM via ICatInformation::EnumClassesOfCategories
+                       FDT DTM Component Categories — obrigatório para PACTware
+                       {036D1490} FDT DTM (discovery)
+                       {036D1493} FDT 1.2 DTM
+                       {036D1494} FDT CommDTM
+                       {036D1495} FDT 1.x compatible
+                       {036D1498} HART Bus — PACTware filtra por esta categoria!
                        ============================================================ -->
                   <RegistryValue Root="HKLM"
                                  Key="SOFTWARE\Classes\Component Categories\{036D1490-387B-11D4-86E1-00E0987270B9}"
                                  Type="string" Value="FDT DTM"/>
                   <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\Component Categories\{036D1498-387B-11D4-86E1-00E0987270B9}"
+                                 Type="string" Value="HART"/>
+
+                  <RegistryValue Root="HKLM"
                                  Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}\Implemented Categories\{036D1490-387B-11D4-86E1-00E0987270B9}"
+                                 Type="string" Value=""/>
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}\Implemented Categories\{036D1493-387B-11D4-86E1-00E0987270B9}"
+                                 Type="string" Value=""/>
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}\Implemented Categories\{036D1494-387B-11D4-86E1-00E0987270B9}"
+                                 Type="string" Value=""/>
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}\Implemented Categories\{036D1495-387B-11D4-86E1-00E0987270B9}"
+                                 Type="string" Value=""/>
+                  <RegistryValue Root="HKLM"
+                                 Key="SOFTWARE\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}\Implemented Categories\{036D1498-387B-11D4-86E1-00E0987270B9}"
                                  Type="string" Value=""/>
 
                   <!-- .NET Category — PACTware usa para rotear para CLR surrogate -->

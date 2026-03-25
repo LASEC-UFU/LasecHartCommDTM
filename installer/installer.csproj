@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputName>LasecHartCommDTM</OutputName>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <OutputDir Condition=" '$(OutputDir)' == '' ">$(MSBuildThisFileDirectory)..\src\LasecHartCommDTM\bin\Release\net35\</OutputDir>
+    <OutputDir Condition=" '$(OutputDir)' == '' ">$(MSBuildThisFileDirectory)..\src\LasecHartCommDTM\bin\Release\net48\</OutputDir>
     <PackagingDir Condition=" '$(PackagingDir)' == '' ">$(MSBuildThisFileDirectory)..\src\LasecHartCommDTM\packaging\</PackagingDir>
   </PropertyGroup>
   <PropertyGroup>

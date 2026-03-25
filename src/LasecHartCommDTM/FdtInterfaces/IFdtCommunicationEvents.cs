@@ -4,7 +4,7 @@ namespace LasecHartCommDTM.FdtInterfaces
 {
     // Callbacks que o frame FDT fornece para receber respostas da comunicação
     [Guid("036d1485-387b-11d4-86e1-00e0987270b9")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [InterfaceType(ComInterfaceType.InterfaceIsDual)]
     [ComVisible(true)]
     public interface IFdtCommunicationEvents
     {

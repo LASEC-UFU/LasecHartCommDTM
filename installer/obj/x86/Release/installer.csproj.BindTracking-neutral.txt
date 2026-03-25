@@ -1,6 +1,6 @@
 BuiltPdbOutput	C:\SourceCode\LasecHartCommDTM\installer\obj\x86\Release\LasecHartCommDTM.wixpdb
 BuiltTargetOutput	C:\SourceCode\LasecHartCommDTM\installer\obj\x86\Release\LasecHartCommDTM.msi
-Input	C:\SourceCode\LasecHartCommDTM\installer\..\src\LasecHartCommDTM\bin\Release\net35\\LasecHartCommDTM.dll
+Input	C:\SourceCode\LasecHartCommDTM\installer\..\src\LasecHartCommDTM\bin\Release\net48\\LasecHartCommDTM.dll
 Input	C:\Users\josuemorais\.nuget\packages\wixtoolset.ui.wixext\6.0.2\wixext6\WixToolset.UI.wixext.dll
 Intermediate	C:\SourceCode\LasecHartCommDTM\installer\obj\x86\Release\#cab1.cab
 Intermediate	C:\SourceCode\LasecHartCommDTM\installer\obj\x86\Release\WixToolset.UI.wixext_hmKgVNFi2NLeeFE3R9nj9zndReI\wix-ir\bannrbmp.bmp
