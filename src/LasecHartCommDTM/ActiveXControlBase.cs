@@ -21,8 +21,14 @@ namespace LasecHartCommDTM
     /// - Call RegisterActiveXControl/UnregisterActiveXControl in [ComRegisterFunction]
     /// </summary>
     [ComVisible(true)]
-    public abstract class ActiveXControlBase : UserControl, ICustomQueryInterface
+    public abstract class ActiveXControlBase : UserControl, ICustomQueryInterface, IDtmActiveXControl
     {
+        /// <summary>DTM instance passed by PACTware via IDtmActiveXControl.Init()</summary>
+        protected object DtmInstance { get; private set; }
+
+        /// <summary>FunctionCall XML passed by PACTware via IDtmActiveXControl.Init()</summary>
+        protected string FunctionCall { get; private set; }
+
         // Well-known OLE interface GUIDs for QI logging
         private static readonly Guid IID_IOleObject              = new Guid("00000112-0000-0000-C000-000000000046");
         private static readonly Guid IID_IOleInPlaceObject       = new Guid("00000113-0000-0000-C000-000000000046");
@@ -105,6 +111,30 @@ namespace LasecHartCommDTM
         /// Called once from OnHandleCreated after OLE activation sets up the correct parent window.
         /// </summary>
         protected abstract void CreateUI();
+
+        // ----------------------------------------------------------------
+        // IDtmActiveXControl — CRITICAL for PACTware OLE embedding.
+        // PACTware calls Init() after creating the control to pass the
+        // DTM reference and functionCall. Without this interface,
+        // PACTware considers the embedding failed and destroys the control.
+        // ----------------------------------------------------------------
+
+        public bool Init(object pDtm, string functionCall)
+        {
+            CommDtm.Log(GetType().Name + ".IDtmActiveXControl.Init(functionCall=" +
+                (functionCall ?? "null") + ")");
+            DtmInstance = pDtm;
+            FunctionCall = functionCall;
+            return true;
+        }
+
+        public bool PrepareToRelease()
+        {
+            CommDtm.Log(GetType().Name + ".IDtmActiveXControl.PrepareToRelease()");
+            DtmInstance = null;
+            FunctionCall = null;
+            return true;
+        }
 
         // ----------------------------------------------------------------
         // COM Registration helpers for ActiveX controls

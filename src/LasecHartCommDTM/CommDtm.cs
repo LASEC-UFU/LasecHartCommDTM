@@ -51,6 +51,24 @@ namespace LasecHartCommDTM
             [MarshalAs(UnmanagedType.BStr)] string functionCall);
     }
 
+    // IDtmActiveXControl — PACTware calls Init() on the embedded ActiveX control
+    // to pass the DTM reference and functionCall. Without this, PACTware considers
+    // the OLE embedding incomplete and destroys the control.
+    // This is the CRITICAL missing interface that caused the "double creation" pattern.
+    [Guid("036D1486-387B-11D4-86E1-00E0987270B9")]
+    [InterfaceType(ComInterfaceType.InterfaceIsDual)]
+    [ComVisible(true)]
+    public interface IDtmActiveXControl
+    {
+        [return: MarshalAs(UnmanagedType.Bool)]
+        bool Init(
+            [MarshalAs(UnmanagedType.IDispatch)] object pDtm,
+            [MarshalAs(UnmanagedType.BStr)] string functionCall);
+
+        [return: MarshalAs(UnmanagedType.Bool)]
+        bool PrepareToRelease();
+    }
+
     [Guid("B4B6B3E7-639D-460B-B9A0-6C7F7EB20010")]
     [ClassInterface(ClassInterfaceType.None)]
     [ComVisible(true)]
