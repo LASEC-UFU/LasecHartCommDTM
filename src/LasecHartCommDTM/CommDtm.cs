@@ -35,10 +35,26 @@ namespace LasecHartCommDTM
         void Save(IntPtr pPropBag, [MarshalAs(UnmanagedType.Bool)] bool fClearDirty, [MarshalAs(UnmanagedType.Bool)] bool fSaveAllProperties);
     }
 
+    // IDtmActiveXInformation — PACTware queries CLSID/ProgId of ActiveX controls
+    // to embed (in-place) in its MDI child window.
+    [Guid("036D1480-387B-11D4-86E1-00E0987270B9")]
+    [InterfaceType(ComInterfaceType.InterfaceIsDual)]
+    [ComVisible(true)]
+    public interface IDtmActiveXInformation
+    {
+        [return: MarshalAs(UnmanagedType.BStr)]
+        string QueryActiveXGuid(
+            [MarshalAs(UnmanagedType.BStr)] string functionCall);
+
+        [return: MarshalAs(UnmanagedType.BStr)]
+        string QueryActiveXProgId(
+            [MarshalAs(UnmanagedType.BStr)] string functionCall);
+    }
+
     [Guid("B4B6B3E7-639D-460B-B9A0-6C7F7EB20010")]
     [ClassInterface(ClassInterfaceType.None)]
     [ComVisible(true)]
-    public class CommDtm : IDtmInformation, IDtm, IFdtCommunication, IPersistStreamInit, IPersistPropertyBag, ICustomQueryInterface
+    public class CommDtm : IDtmInformation, IDtm, IFdtCommunication, IDtmParameter, IDtmActiveXInformation, IPersistStreamInit, IPersistPropertyBag, ICustomQueryInterface
     {
         private static CommDtm _current;
         internal static CommDtm Current => _current;
@@ -64,8 +80,10 @@ namespace LasecHartCommDTM
         private static readonly Guid IID_IDtmInformation      = new Guid("036D147F-387B-11D4-86E1-00E0987270B9");
         private static readonly Guid IID_IDtm                 = new Guid("036D1481-387B-11D4-86E1-00E0987270B9");
         private static readonly Guid IID_IFdtCommunication    = new Guid("039ECFC4-9CA8-44E6-944D-B37F288A34D8");
+        private static readonly Guid IID_IDtmParameter       = new Guid("036D147D-387B-11D4-86E1-00E0987270B9");
         private static readonly Guid IID_IPersistStreamInit   = new Guid("7FD52380-4E07-101B-AE2D-08002B2EC713");
         private static readonly Guid IID_IPersistPropertyBag  = new Guid("37D84F60-42CB-11CE-8135-00AA004BB851");
+        private static readonly Guid IID_IDtmActiveXInfo      = new Guid("036D1480-387B-11D4-86E1-00E0987270B9");
         private static readonly Guid IID_IDispatch            = new Guid("00020400-0000-0000-C000-000000000046");
         private static readonly Guid IID_IUnknown             = new Guid("00000000-0000-0000-C000-000000000046");
 
@@ -96,8 +114,10 @@ namespace LasecHartCommDTM
             if (iid == IID_IDtmInformation) name = "IDtmInformation";
             else if (iid == IID_IDtm) name = "IDtm";
             else if (iid == IID_IFdtCommunication) name = "IFdtCommunication";
+            else if (iid == IID_IDtmParameter) name = "IDtmParameter";
             else if (iid == IID_IPersistStreamInit) name = "IPersistStreamInit";
             else if (iid == IID_IPersistPropertyBag) name = "IPersistPropertyBag";
+            else if (iid == IID_IDtmActiveXInfo) name = "IDtmActiveXInformation";
             else if (iid == IID_IDispatch) name = "IDispatch";
             else if (iid == IID_IUnknown) name = "IUnknown";
 
@@ -125,6 +145,12 @@ namespace LasecHartCommDTM
                     Log("QI -> HANDLED IFdtCommunication");
                     return CustomQueryInterfaceResult.Handled;
                 }
+                if (iid == IID_IDtmParameter)
+                {
+                    ppv = Marshal.GetComInterfaceForObject(this, typeof(IDtmParameter));
+                    Log("QI -> HANDLED IDtmParameter");
+                    return CustomQueryInterfaceResult.Handled;
+                }
                 if (iid == IID_IPersistStreamInit)
                 {
                     ppv = Marshal.GetComInterfaceForObject(this, typeof(IPersistStreamInit));
@@ -135,6 +161,12 @@ namespace LasecHartCommDTM
                 {
                     ppv = Marshal.GetComInterfaceForObject(this, typeof(IPersistPropertyBag));
                     Log("QI -> HANDLED IPersistPropertyBag");
+                    return CustomQueryInterfaceResult.Handled;
+                }
+                if (iid == IID_IDtmActiveXInfo)
+                {
+                    ppv = Marshal.GetComInterfaceForObject(this, typeof(IDtmActiveXInformation));
+                    Log("QI -> HANDLED IDtmActiveXInformation");
                     return CustomQueryInterfaceResult.Handled;
                 }
             }
@@ -371,17 +403,58 @@ namespace LasecHartCommDTM
             return true;
         }
 
-        // GetFunctions: compatível com DTMFUNCTIONS.XML do CWHart
+        // GetFunctions: retorna funções FDT para CommDTM
+        // Formato idêntico ao CWHart DTMFUNCTIONS.XML:
+        //   <FDT xmlns="x-schema:DTMFunctionsSchema.xml" ...>
+        //     <Functions> com <StandardFunction> + <Function> + <Document>
+        // PACTware chama com operationPhase="notSupported" para CommDTMs
         public string GetFunctions(string operationState)
         {
             Log("GetFunctions(state=" + (operationState ?? "null") + ")");
-            return
-                "<FDTFunctions xmlns=\"x-schema:DTMFunctionsSchema.xml\">" +
-                  "<fdt:Function" +
-                  "  functionId=\"Configure\"" +
-                  "  label=\"Configure\"" +
-                  "  xmlns:fdt=\"x-schema:FDTDataTypesSchema.xml\"/>" +
-                "</FDTFunctions>";
+
+            string xml =
+                "<?xml version=\"1.0\"?>" +
+                "<FDT xmlns=\"x-schema:DTMFunctionsSchema.xml\"" +
+                " xmlns:fdt=\"x-schema:FDTDataTypesSchema.xml\"" +
+                " xmlns:appId=\"x-schema:FDTApplicationIdSchema.xml\">" +
+                  "<Functions label=\"Functions\" fdt:name=\"\" help=\"\">" +
+
+                    // StandardFunction fdtConfiguration → "parâmetro" no PACTware
+                    "<StandardFunction fdt:name=\"Configuration\" help=\"\" functionId=\"1\"" +
+                    " resizableStandardFunction=\"1\" printableStandardFunction=\"1\">" +
+                      "<Status toggle=\"0\" checked=\"0\" enabled=\"1\" hidden=\"0\" separator=\"0\"/>" +
+                      "<appId:ApplicationId applicationId=\"fdtConfiguration\"/>" +
+                    "</StandardFunction>" +
+
+                    // Custom: Change device address
+                    "<Function label=\"Change device address\" fdt:name=\"mnChangeDeviceAddress\"" +
+                    " help=\"Change device address\" functionId=\"20\" hasGUI=\"1\" resizable=\"1\">" +
+                      "<Status toggle=\"1\" checked=\"0\" enabled=\"1\" hidden=\"0\" separator=\"0\"/>" +
+                    "</Function>" +
+
+                    // Custom: Change DTM address
+                    "<Function label=\"Change DTM address\" fdt:name=\"mnChangeDtmAddress\"" +
+                    " help=\"Change DTM address\" functionId=\"30\" hasGUI=\"1\" resizable=\"1\">" +
+                      "<Status toggle=\"1\" checked=\"0\" enabled=\"1\" hidden=\"0\" separator=\"0\"/>" +
+                    "</Function>" +
+
+                    // Custom: Communication log
+                    "<Function label=\"Communication log\" fdt:name=\"mnLog\"" +
+                    " help=\"Communication log\" functionId=\"10\" hasGUI=\"1\" resizable=\"1\">" +
+                      "<Status toggle=\"1\" checked=\"0\" enabled=\"1\" hidden=\"0\" separator=\"0\"/>" +
+                    "</Function>" +
+
+                    // Custom: About
+                    "<Function label=\"About\" fdt:name=\"mnAbout\"" +
+                    " help=\"About this DTM\" functionId=\"100\" hasGUI=\"1\" resizable=\"0\">" +
+                      "<Status toggle=\"1\" checked=\"0\" enabled=\"1\" hidden=\"0\" separator=\"0\"/>" +
+                    "</Function>" +
+
+                  "</Functions>" +
+                "</FDT>";
+
+            Log("GetFunctions() returning " + xml.Length + " chars");
+            return xml;
         }
 
         public bool InvokeFunctionRequest(string invokeId, string functionCall)
@@ -389,28 +462,43 @@ namespace LasecHartCommDTM
             Log("InvokeFunctionRequest(id=" + invokeId + ", func=" + (functionCall ?? "null") + ")");
             try
             {
-                bool isConfig = functionCall != null &&
-                    (functionCall.IndexOf("Configure", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                     functionCall.IndexOf("Configuration", StringComparison.OrdinalIgnoreCase) >= 0);
-
-                if (isConfig)
+                // PACTware sends: <FDT xmlns="x-schema:DTMFunctionCallSchema.xml"
+                //   xmlns:func="x-schema:DTMFunctionsSchema.xml">
+                //   <FDTFunctionCall func:functionId="1"/>
+                // </FDT>
+                int funcId = 0;
+                if (functionCall != null)
                 {
-                    var thread = new System.Threading.Thread(() =>
-                    {
-                        try
-                        {
-                            var dlg = new DtmView();
-                            dlg.ShowDialog();
-                            dlg.Dispose();
-                        }
-                        catch (Exception ex)
-                        {
-                            Log("InvokeFunctionRequest dialog error: " + ex.Message);
-                        }
-                    });
-                    thread.SetApartmentState(System.Threading.ApartmentState.STA);
-                    thread.IsBackground = true;
-                    thread.Start();
+                    var doc = new XmlDocument();
+                    doc.LoadXml(functionCall);
+                    var nsMgr = new XmlNamespaceManager(doc.NameTable);
+                    nsMgr.AddNamespace("func", "x-schema:DTMFunctionsSchema.xml");
+                    var attr = doc.SelectSingleNode("//*/@func:functionId", nsMgr);
+                    if (attr != null) int.TryParse(attr.Value, out funcId);
+                }
+
+                Log("InvokeFunctionRequest -> functionId=" + funcId);
+
+                switch (funcId)
+                {
+                    case 1:  // fdtConfiguration → "parâmetro"
+                        OpenConfigDialog();
+                        break;
+                    case 10: // Communication log
+                        Log("InvokeFunctionRequest -> Communication log (not yet implemented)");
+                        break;
+                    case 20: // Change device address
+                        Log("InvokeFunctionRequest -> Change device address (not yet implemented)");
+                        break;
+                    case 30: // Change DTM address
+                        Log("InvokeFunctionRequest -> Change DTM address (not yet implemented)");
+                        break;
+                    case 100: // About
+                        OpenAboutDialog();
+                        break;
+                    default:
+                        Log("InvokeFunctionRequest -> unknown functionId " + funcId);
+                        break;
                 }
             }
             catch (Exception ex)
@@ -418,6 +506,50 @@ namespace LasecHartCommDTM
                 Log("InvokeFunctionRequest error: " + ex.Message);
             }
             return true;
+        }
+
+        private void OpenConfigDialog()
+        {
+            Log("Opening configuration dialog...");
+            var thread = new System.Threading.Thread(() =>
+            {
+                try
+                {
+                    var dlg = new DtmView();
+                    dlg.ShowDialog();
+                    dlg.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Log("Config dialog error: " + ex.Message);
+                }
+            });
+            thread.SetApartmentState(System.Threading.ApartmentState.STA);
+            thread.IsBackground = true;
+            thread.Start();
+        }
+
+        private void OpenAboutDialog()
+        {
+            Log("Opening About dialog...");
+            var thread = new System.Threading.Thread(() =>
+            {
+                try
+                {
+                    System.Windows.Forms.MessageBox.Show(
+                        "Lasec HART Communication DTM\nVersion 1.0.0\n\nJosueLab",
+                        "About",
+                        System.Windows.Forms.MessageBoxButtons.OK,
+                        System.Windows.Forms.MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    Log("About dialog error: " + ex.Message);
+                }
+            });
+            thread.SetApartmentState(System.Threading.ApartmentState.STA);
+            thread.IsBackground = true;
+            thread.Start();
         }
 
         public bool PrivateDialogEnabled(bool enabled)
@@ -611,6 +743,78 @@ namespace LasecHartCommDTM
             return true;
         }
 
+        // ----------------------------------------------------------------
+        // IDtmParameter — habilita menu "parâmetro" no PACTware
+        // ----------------------------------------------------------------
+        public string GetParameters(string parameterPath)
+        {
+            Log("IDtmParameter.GetParameters(path=" + (parameterPath ?? "null") + ")");
+            // Retorna XML com os parâmetros atuais do CommDTM
+            string xml =
+                "<?xml version=\"1.0\"?>" +
+                "<FDT xmlns=\"x-schema:DTMParameterSchema.xml\" xmlns:fdt=\"x-schema:FDTDataTypesSchema.xml\">" +
+                  "<DtmDevice>" +
+                    "<fdt:DtmVariables>" +
+                      "<fdt:DtmVariable name=\"ipAddress\"><fdt:Value><fdt:Variant><fdt:StringData string=\"" + HartXmlHelper.XmlEscape(_ipAddress) + "\"/></fdt:Variant></fdt:Value></fdt:DtmVariable>" +
+                      "<fdt:DtmVariable name=\"ipPort\"><fdt:Value><fdt:Variant><fdt:NumberData number=\"" + _ipPort + "\"/></fdt:Variant></fdt:Value></fdt:DtmVariable>" +
+                      "<fdt:DtmVariable name=\"protocol\"><fdt:Value><fdt:Variant><fdt:StringData string=\"" + HartXmlHelper.XmlEscape(_protocol) + "\"/></fdt:Variant></fdt:Value></fdt:DtmVariable>" +
+                      "<fdt:DtmVariable name=\"primaryMaster\"><fdt:Value><fdt:Variant><fdt:NumberData number=\"" + (_primaryMaster ? "1" : "0") + "\"/></fdt:Variant></fdt:Value></fdt:DtmVariable>" +
+                      "<fdt:DtmVariable name=\"preambleCount\"><fdt:Value><fdt:Variant><fdt:NumberData number=\"" + _preambleCount + "\"/></fdt:Variant></fdt:Value></fdt:DtmVariable>" +
+                      "<fdt:DtmVariable name=\"retryCount\"><fdt:Value><fdt:Variant><fdt:NumberData number=\"" + _retryCount + "\"/></fdt:Variant></fdt:Value></fdt:DtmVariable>" +
+                      "<fdt:DtmVariable name=\"scanStart\"><fdt:Value><fdt:Variant><fdt:NumberData number=\"" + _scanStart + "\"/></fdt:Variant></fdt:Value></fdt:DtmVariable>" +
+                      "<fdt:DtmVariable name=\"scanStop\"><fdt:Value><fdt:Variant><fdt:NumberData number=\"" + _scanStop + "\"/></fdt:Variant></fdt:Value></fdt:DtmVariable>" +
+                      "<fdt:DtmVariable name=\"burstMode\"><fdt:Value><fdt:Variant><fdt:NumberData number=\"" + (_burstMode ? "1" : "0") + "\"/></fdt:Variant></fdt:Value></fdt:DtmVariable>" +
+                      "<fdt:DtmVariable name=\"timeout\"><fdt:Value><fdt:Variant><fdt:NumberData number=\"" + _timeout + "\"/></fdt:Variant></fdt:Value></fdt:DtmVariable>" +
+                    "</fdt:DtmVariables>" +
+                  "</DtmDevice>" +
+                "</FDT>";
+            Log("IDtmParameter.GetParameters() returning " + xml.Length + " chars");
+            return xml;
+        }
+
+        public bool SetParameters(string parameterPath, string fdtXmlDocument)
+        {
+            Log("IDtmParameter.SetParameters(path=" + (parameterPath ?? "null") + ", xml=" + (fdtXmlDocument ?? "null") + ")");
+            try
+            {
+                if (string.IsNullOrEmpty(fdtXmlDocument)) return true;
+                var doc = new XmlDocument();
+                doc.LoadXml(fdtXmlDocument);
+                var nsMgr = new XmlNamespaceManager(doc.NameTable);
+                nsMgr.AddNamespace("fdt", "x-schema:FDTDataTypesSchema.xml");
+
+                var vars = doc.SelectNodes("//fdt:DtmVariable", nsMgr);
+                if (vars != null)
+                {
+                    foreach (XmlNode v in vars)
+                    {
+                        string name = v.Attributes?["name"]?.Value;
+                        var strNode = v.SelectSingleNode(".//fdt:StringData/@string", nsMgr);
+                        var numNode = v.SelectSingleNode(".//fdt:NumberData/@number", nsMgr);
+                        string strVal = strNode?.Value;
+                        string numVal = numNode?.Value;
+
+                        if (name == "ipAddress" && strVal != null) _ipAddress = strVal;
+                        else if (name == "ipPort" && numVal != null) int.TryParse(numVal, out _ipPort);
+                        else if (name == "protocol" && strVal != null) _protocol = strVal;
+                        else if (name == "primaryMaster" && numVal != null) _primaryMaster = numVal != "0";
+                        else if (name == "preambleCount" && numVal != null) int.TryParse(numVal, out _preambleCount);
+                        else if (name == "retryCount" && numVal != null) int.TryParse(numVal, out _retryCount);
+                        else if (name == "scanStart" && numVal != null) int.TryParse(numVal, out _scanStart);
+                        else if (name == "scanStop" && numVal != null) int.TryParse(numVal, out _scanStop);
+                        else if (name == "burstMode" && numVal != null) _burstMode = numVal != "0";
+                        else if (name == "timeout" && numVal != null) int.TryParse(numVal, out _timeout);
+                    }
+                }
+                Log("IDtmParameter.SetParameters() applied: " + _protocol + "://" + _ipAddress + ":" + _ipPort);
+            }
+            catch (Exception ex)
+            {
+                Log("IDtmParameter.SetParameters() ERROR: " + ex.Message);
+            }
+            return true;
+        }
+
         // Persistência de parâmetros para XML (chamado pelo frame FDT via Config/SaveRequest)
         internal string GetParameterXml()
         {
@@ -711,6 +915,85 @@ namespace LasecHartCommDTM
         }
 
         // ----------------------------------------------------------------
+        // IDtmActiveXInformation — returns CLSID/ProgId of the ActiveX
+        // control that PACTware embeds in its MDI child window.
+        // PACTware sends functionCall XML with functionId to identify
+        // which function the user wants to open. We return different
+        // ActiveX controls per functionId (like CWHart does).
+        // ----------------------------------------------------------------
+
+        public string QueryActiveXGuid(string functionCall)
+        {
+            int funcId = ParseFunctionId(functionCall);
+            string guid;
+            switch (funcId)
+            {
+                case 1:   guid = typeof(ConfigControl).GUID.ToString("B"); break;
+                case 10:  guid = typeof(LogControl).GUID.ToString("B"); break;
+                case 20:  guid = typeof(DeviceAddressControl).GUID.ToString("B"); break;
+                case 30:  guid = typeof(DtmAddressControl).GUID.ToString("B"); break;
+                case 100: guid = typeof(AboutControl).GUID.ToString("B"); break;
+                default:  guid = typeof(ConfigControl).GUID.ToString("B"); break;
+            }
+            Log("IDtmActiveXInformation.QueryActiveXGuid(funcId=" + funcId + ") -> " + guid);
+            return guid;
+        }
+
+        public string QueryActiveXProgId(string functionCall)
+        {
+            int funcId = ParseFunctionId(functionCall);
+            string progId;
+            switch (funcId)
+            {
+                case 1:   progId = "LasecHartCommDTM.ConfigControl"; break;
+                case 10:  progId = "LasecHartCommDTM.LogControl"; break;
+                case 20:  progId = "LasecHartCommDTM.DeviceAddressControl"; break;
+                case 30:  progId = "LasecHartCommDTM.DtmAddressControl"; break;
+                case 100: progId = "LasecHartCommDTM.AboutControl"; break;
+                default:  progId = "LasecHartCommDTM.ConfigControl"; break;
+            }
+            Log("IDtmActiveXInformation.QueryActiveXProgId(funcId=" + funcId + ") -> " + progId);
+            return progId;
+        }
+
+        /// <summary>
+        /// Parse functionId from PACTware's functionCall XML.
+        /// Format: &lt;FDT xmlns="x-schema:DTMFunctionCallSchema.xml"
+        ///           xmlns:func="x-schema:DTMFunctionsSchema.xml"&gt;
+        ///           &lt;FDTFunctionCall func:functionId="1"/&gt;
+        ///         &lt;/FDT&gt;
+        /// </summary>
+        private static int ParseFunctionId(string functionCall)
+        {
+            if (string.IsNullOrEmpty(functionCall)) return 1;
+            try
+            {
+                var doc = new XmlDocument();
+                doc.LoadXml(functionCall);
+                var nsMgr = new XmlNamespaceManager(doc.NameTable);
+                nsMgr.AddNamespace("func", "x-schema:DTMFunctionsSchema.xml");
+                var attr = doc.SelectSingleNode("//*/@func:functionId", nsMgr);
+                if (attr != null)
+                {
+                    int id;
+                    if (int.TryParse(attr.Value, out id)) return id;
+                }
+                // Fallback: try without namespace
+                var node = doc.SelectSingleNode("//*/@functionId");
+                if (node != null)
+                {
+                    int id;
+                    if (int.TryParse(node.Value, out id)) return id;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log("ParseFunctionId error: " + ex.Message);
+            }
+            return 1; // default to Configuration
+        }
+
+        // ----------------------------------------------------------------
         // Registro FDT DTM no COM (32-bit)
         // ----------------------------------------------------------------
         private const string FdtDtmCategoryId  = "{036D1490-387B-11D4-86E1-00E0987270B9}";
@@ -764,6 +1047,11 @@ namespace LasecHartCommDTM
 
                 using (var catKey = Registry.ClassesRoot.CreateSubKey(@"Component Categories\" + HartBusCategoryId))
                     if (catKey != null) catKey.SetValue(null, "HART");
+
+                // NOTE: ActiveX controls (ConfigControl, LogControl, DeviceAddressControl,
+                // DtmAddressControl, AboutControl) each have their own [ComRegisterFunction]
+                // that registers their Control/MiscStatus/TypeLib entries via
+                // ActiveXControlBase.RegisterActiveXControl(). No need to do it here.
             }
             catch (Exception ex)
             {
