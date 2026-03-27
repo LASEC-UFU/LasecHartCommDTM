@@ -1,0 +1,53 @@
+﻿**********************
+Início da transcrição do Windows PowerShell
+Hora de início: 20260327075016
+Nome de Usuário: PC_UFU_JOSUE\josuemorais
+Executar como Usuário: PC_UFU_JOSUE\josuemorais
+Nome da Configuração: 
+Computador: PC_UFU_JOSUE (Microsoft Windows NT 10.0.26200.0)
+Aplicativo Host: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File C:\SourceCode\LasecHartCommDTM\fix_and_redeploy.ps1
+ID do Processo: 24064
+PSVersion: 5.1.26100.7920
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.7920
+BuildVersion: 10.0.26100.7920
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcrição iniciada, o arquivo de saída é C:\SourceCode\LasecHartCommDTM\fix_output.log
+1. Re-registering Jigfdt TypeLib (FDT100.dll)...
+   FDT100.dll TypeLib registered successfully
+
+2. Re-registering CWHart (CWHARTFDT.ocx)...
+   regsvr32 done (exit=)
+
+3. Verifying FDT interfaces...
+  OK  IDtmParameter
+  OK  IFdtCommunicationEvents
+  OK  IDtm
+  OK  IFdtChannel
+  OK  IDtmInformation
+  OK  IFdtCommunication
+  OK  IFdtEvents
+  OK  IDtmActiveXInformation
+  OK  IDtmEventsSource RENAMED=IDtmEvents
+  OK  IDtmChannel
+  OK  IDtmActiveXControl
+  OK  IDtmDocumentation
+  OK  IFdtChannelCollection
+  OK  IFdtChannelSubTopology
+  CWHart CLSID: EXISTS
+
+4. Now re-registering our DTM WITHOUT /tlb...
+Microsoft .NET Framework Assembly Registration Utility versão 4.8.9221.0
+para Microsoft .NET Framework versão 4.8.9221.0
+Copyright (C) Microsoft Corporation. Todos os direitos reservados.
+
+Registro de tipos executado com êxito
+   regasm /codebase done
+**********************
+Fim da transcrição do Windows PowerShell
+Hora de término: 20260327075017
+**********************

@@ -1,0 +1,10 @@
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\bin\x86\Debug\net48\LasecHartCommDTM.dll
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\bin\x86\Debug\net48\LasecHartCommDTM.pdb
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\x86\Debug\net48\LasecHartCommDTM.csproj.AssemblyReference.cache
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\x86\Debug\net48\LasecHartCommDTM.GeneratedMSBuildEditorConfig.editorconfig
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\x86\Debug\net48\LasecHartCommDTM.AssemblyInfoInputs.cache
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\x86\Debug\net48\LasecHartCommDTM.AssemblyInfo.cs
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\x86\Debug\net48\LasecHartCommDTM.csproj.CoreCompileInputs.cache
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\x86\Debug\net48\LasecHartCommDTM.sourcelink.json
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\x86\Debug\net48\LasecHartCommDTM.dll
+C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\x86\Debug\net48\LasecHartCommDTM.pdb

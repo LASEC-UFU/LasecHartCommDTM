@@ -35,6 +35,19 @@ namespace HartEngine
             _channel.Open();
         }
 
+        /// <summary>
+        /// Configura o canal de comunicação serial (porta COM).
+        /// </summary>
+        public void ConfigureSerial(string comPort, int baudRate)
+        {
+            _protocol = "serial";
+            _channel?.Dispose();
+            _channel = null;
+
+            _channel = new SerialChannel(comPort, baudRate);
+            _channel.Open();
+        }
+
         public byte[] SendAndReceive(byte[] request, int timeoutMs)
         {
             if (_channel == null)

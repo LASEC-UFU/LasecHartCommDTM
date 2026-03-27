@@ -1,0 +1,10 @@
+C:\SourceCode\LasecHartCommDTM\spy\obj\x86\Release\net48\CWHartSpy.csproj.AssemblyReference.cache
+C:\SourceCode\LasecHartCommDTM\spy\obj\x86\Release\net48\CWHartSpy.GeneratedMSBuildEditorConfig.editorconfig
+C:\SourceCode\LasecHartCommDTM\spy\obj\x86\Release\net48\CWHartSpy.AssemblyInfoInputs.cache
+C:\SourceCode\LasecHartCommDTM\spy\obj\x86\Release\net48\CWHartSpy.AssemblyInfo.cs
+C:\SourceCode\LasecHartCommDTM\spy\obj\x86\Release\net48\CWHartSpy.csproj.CoreCompileInputs.cache
+C:\SourceCode\LasecHartCommDTM\spy\obj\x86\Release\net48\CWHartSpy.sourcelink.json
+C:\SourceCode\LasecHartCommDTM\spy\bin\x86\Release\net48\CWHartSpy.dll
+C:\SourceCode\LasecHartCommDTM\spy\bin\x86\Release\net48\CWHartSpy.pdb
+C:\SourceCode\LasecHartCommDTM\spy\obj\x86\Release\net48\CWHartSpy.dll
+C:\SourceCode\LasecHartCommDTM\spy\obj\x86\Release\net48\CWHartSpy.pdb

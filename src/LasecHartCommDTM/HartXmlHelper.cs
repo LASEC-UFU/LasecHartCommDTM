@@ -86,16 +86,18 @@ namespace LasecHartCommDTM
             }
 
             return
+                "<?xml version=\"1.0\"?>" +
+                "<FDT xmlns=\"x-schema:FDTHARTCommunicationSchema.xml\"" +
+                " xmlns:fdt=\"x-schema:FDTDataTypesSchema.xml\">" +
                 "<DataExchangeResponse" +
-                " xmlns=\"x-schema:HartCommunicationSchema.xml\"" +
-                " xmlns:fdt=\"x-schema:FDTDataTypesSchema.xml\"" +
                 " commandNumber=\"" + commandNumber + "\"" +
                 " communicationReference=\"" + XmlEscape(communicationReference) + "\">" +
                   "<fdt:CommunicationData byteArray=\"" + hex + "\"/>" +
                   "<Status deviceStatus=\"" + deviceStatus + "\">" +
                     "<ResponseCode value=\"" + responseCode + "\"/>" +
                   "</Status>" +
-                "</DataExchangeResponse>";
+                "</DataExchangeResponse>" +
+                "</FDT>";
         }
 
         // ================================================================
@@ -105,10 +107,13 @@ namespace LasecHartCommDTM
         internal static string BuildErrorResponse(string errorType, string tag)
         {
             return
+                "<?xml version=\"1.0\"?>" +
+                "<FDT xmlns=\"x-schema:FDTHARTCommunicationSchema.xml\"" +
+                " xmlns:fdt=\"x-schema:FDTDataTypesSchema.xml\">" +
                 "<fdt:CommunicationError" +
-                " xmlns:fdt=\"x-schema:FDTDataTypesSchema.xml\"" +
                 " communicationError=\"" + XmlEscape(errorType) + "\"" +
-                " tag=\"" + XmlEscape(tag) + "\"/>";
+                " tag=\"" + XmlEscape(tag) + "\"/>" +
+                "</FDT>";
         }
 
         // ================================================================

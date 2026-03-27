@@ -1,0 +1,318 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
+
+namespace CWHartSpy
+{
+    // IClassFactory — we use this to create the real CWHart from the OCX
+    [ComImport, Guid("00000001-0000-0000-C000-000000000046")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    internal interface IClassFactory
+    {
+        [PreserveSig]
+        int CreateInstance(
+            [MarshalAs(UnmanagedType.IUnknown)] object pUnkOuter,
+            ref Guid riid,
+            [MarshalAs(UnmanagedType.IUnknown)] out object ppvObject);
+
+        [PreserveSig]
+        int LockServer([MarshalAs(UnmanagedType.Bool)] bool fLock);
+    }
+
+    /// <summary>
+    /// COM Proxy that replaces CWHart in the registry.
+    /// PACTware creates this thinking it's CWHart.
+    /// We create the REAL CWHart by loading CWHARTFDT.ocx directly,
+    /// forward all QIs to it, and intercept IConnectionPointContainer
+    /// to spy on event subscriptions.
+    /// </summary>
+    [Guid("6358CCBF-AA0E-4633-9564-9EEFB7FDE86D")]  // SAME CLSID as real CWHart
+    [ClassInterface(ClassInterfaceType.None)]
+    [ComVisible(true)]
+    [ProgId("CWHartFdt.clsDTM")]
+    public class CWHartProxy : ICustomQueryInterface, IDisposable
+    {
+        private object _real;              // The REAL CWHart COM object (RCW)
+        private IntPtr _hModule;           // Handle to loaded CWHARTFDT.ocx
+
+        private static readonly string OcxPath = @"C:\Windows\SysWow64\CWHARTFDT.ocx";
+        internal static readonly string LogPath = @"C:\Temp\CWHartSpy.log";
+
+        // Well-known interface GUIDs
+        private static readonly Guid IID_IUnknown               = new Guid("00000000-0000-0000-C000-000000000046");
+        private static readonly Guid IID_IDispatch              = new Guid("00020400-0000-0000-C000-000000000046");
+        private static readonly Guid IID_IDtmInformation        = new Guid("036D147F-387B-11D4-86E1-00E0987270B9");
+        private static readonly Guid IID_IDtm                   = new Guid("036D1481-387B-11D4-86E1-00E0987270B9");
+        private static readonly Guid IID_IFdtCommunication      = new Guid("039ECFC4-9CA8-44E6-944D-B37F288A34D8");
+        private static readonly Guid IID_IDtmParameter          = new Guid("036D147D-387B-11D4-86E1-00E0987270B9");
+        private static readonly Guid IID_IDtmActiveXInformation = new Guid("036D1480-387B-11D4-86E1-00E0987270B9");
+        private static readonly Guid IID_IDtmActiveXControl     = new Guid("036D1486-387B-11D4-86E1-00E0987270B9");
+        private static readonly Guid IID_IFdtChannelSubTopology = new Guid("036D1484-387B-11D4-86E1-00E0987270B9");
+        private static readonly Guid IID_IDtmChannel            = new Guid("036D1489-387B-11D4-86E1-00E0987270B9");
+        private static readonly Guid IID_IFdtChannel            = new Guid("036D1488-387B-11D4-86E1-00E0987270B9");
+        private static readonly Guid IID_IFdtEvents             = new Guid("036D1478-387B-11D4-86E1-00E0987270B9");
+        private static readonly Guid IID_IDtmDocumentation      = new Guid("036D147C-387B-11D4-86E1-00E0987270B9");
+        private static readonly Guid IID_IDtmEvents             = new Guid("F15BA42E-BBF1-42ED-8009-7F664A002CFB");
+        private static readonly Guid IID_IConnPtContainer       = new Guid("B196B284-BAB4-101A-B69C-00AA00341D07");
+        private static readonly Guid IID_IPersistStreamInit     = new Guid("7FD52380-4E07-101B-AE2D-08002B2EC713");
+        private static readonly Guid IID_IPersistPropertyBag    = new Guid("37D84F60-42CB-11CE-8135-00AA004BB851");
+        private static readonly Guid IID_IPersistStorage        = new Guid("0000010A-0000-0000-C000-000000000046");
+        private static readonly Guid IID_IOleObject             = new Guid("00000112-0000-0000-C000-000000000046");
+        private static readonly Guid IID_IOleControl            = new Guid("B196B288-BAB4-101A-B69C-00AA00341D07");
+        private static readonly Guid IID_IQuickActivate         = new Guid("CF51ED10-62FE-11CF-BF86-00A0C9034836");
+
+        // DllGetClassObject delegate type
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate int DllGetClassObjectDelegate(
+            ref Guid clsid, ref Guid riid, out IntPtr ppv);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr LoadLibrary(string lpFileName);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+        private static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
+
+        // SpyConnectionPointContainer instances — prevent GC
+        private readonly List<SpyConnectionPointContainer> _spyCPCs =
+            new List<SpyConnectionPointContainer>();
+
+        public CWHartProxy()
+        {
+            Log("============================================================");
+            Log("CWHartProxy() — PACTware created us (thinking we are CWHart)");
+
+            try
+            {
+                // Load CWHARTFDT.ocx directly (bypasses COM registry)
+                _hModule = LoadLibrary(OcxPath);
+                if (_hModule == IntPtr.Zero)
+                {
+                    int err = Marshal.GetLastWin32Error();
+                    Log("FATAL: LoadLibrary('" + OcxPath + "') failed, error=" + err);
+                    throw new COMException("Cannot load " + OcxPath, err);
+                }
+                Log("Loaded " + OcxPath + " at 0x" + _hModule.ToString("X"));
+
+                // Get DllGetClassObject export
+                IntPtr pDGCO = GetProcAddress(_hModule, "DllGetClassObject");
+                if (pDGCO == IntPtr.Zero)
+                {
+                    Log("FATAL: DllGetClassObject not found in OCX");
+                    throw new COMException("DllGetClassObject not found");
+                }
+
+                var dgcof = (DllGetClassObjectDelegate)
+                    Marshal.GetDelegateForFunctionPointer(pDGCO, typeof(DllGetClassObjectDelegate));
+
+                // Create class factory for real CWHart CLSID
+                Guid clsid = new Guid("6358CCBF-AA0E-4633-9564-9EEFB7FDE86D");
+                Guid iidFactory = new Guid("00000001-0000-0000-C000-000000000046");
+                IntPtr pFactory;
+                int hr = dgcof(ref clsid, ref iidFactory, out pFactory);
+                if (hr != 0)
+                {
+                    Log("FATAL: DllGetClassObject failed hr=0x" + hr.ToString("X8"));
+                    throw new COMException("DllGetClassObject failed", hr);
+                }
+                Log("Got IClassFactory from OCX");
+
+                // Create the real CWHart object
+                var factory = (IClassFactory)Marshal.GetObjectForIUnknown(pFactory);
+                Marshal.Release(pFactory);
+
+                Guid iidUnk = IID_IUnknown;
+                hr = factory.CreateInstance(null, ref iidUnk, out _real);
+                if (hr != 0 || _real == null)
+                {
+                    Log("FATAL: IClassFactory.CreateInstance failed hr=0x" + (hr != 0 ? hr.ToString("X8") : "null"));
+                    throw new COMException("Cannot create real CWHart", hr);
+                }
+                Log("Real CWHart created OK: " + _real.GetType().FullName);
+
+                // Probe which interfaces the real CWHart supports
+                LogRealInterfaces();
+            }
+            catch (Exception ex)
+            {
+                Log("CWHartProxy CONSTRUCTOR ERROR: " + ex.ToString());
+                throw;
+            }
+        }
+
+        private void LogRealInterfaces()
+        {
+            IntPtr pUnk = Marshal.GetIUnknownForObject(_real);
+            try
+            {
+                var probes = new (Guid guid, string name)[]
+                {
+                    (IID_IDtmInformation, "IDtmInformation"),
+                    (IID_IDtm, "IDtm"),
+                    (IID_IFdtCommunication, "IFdtCommunication"),
+                    (IID_IDtmParameter, "IDtmParameter"),
+                    (IID_IDtmActiveXInformation, "IDtmActiveXInformation"),
+                    (IID_IDtmActiveXControl, "IDtmActiveXControl"),
+                    (IID_IFdtChannelSubTopology, "IFdtChannelSubTopology"),
+                    (IID_IDtmChannel, "IDtmChannel"),
+                    (IID_IFdtChannel, "IFdtChannel"),
+                    (IID_IFdtEvents, "IFdtEvents"),
+                    (IID_IDtmDocumentation, "IDtmDocumentation"),
+                    (IID_IDtmEvents, "IDtmEvents"),
+                    (IID_IConnPtContainer, "IConnectionPointContainer"),
+                    (IID_IPersistStreamInit, "IPersistStreamInit"),
+                    (IID_IPersistPropertyBag, "IPersistPropertyBag"),
+                    (IID_IPersistStorage, "IPersistStorage"),
+                    (IID_IOleObject, "IOleObject"),
+                    (IID_IOleControl, "IOleControl"),
+                    (IID_IQuickActivate, "IQuickActivate"),
+                    (IID_IDispatch, "IDispatch"),
+                };
+                foreach (var (guid, name) in probes)
+                {
+                    Guid g = guid;
+                    IntPtr pItf;
+                    int hr = Marshal.QueryInterface(pUnk, ref g, out pItf);
+                    string result = hr == 0 ? "YES" : "no (0x" + hr.ToString("X8") + ")";
+                    if (hr == 0) Marshal.Release(pItf);
+                    Log("  Real CWHart supports " + name + "? " + result);
+                }
+            }
+            finally
+            {
+                Marshal.Release(pUnk);
+            }
+        }
+
+        // ================================================================
+        // ICustomQueryInterface — intercept every QI from PACTware
+        // ================================================================
+        public CustomQueryInterfaceResult GetInterface(ref Guid iid, out IntPtr ppv)
+        {
+            ppv = IntPtr.Zero;
+            string name = IdentifyInterface(iid);
+
+            Log("QI(" + name + " " + iid.ToString("B") + ")");
+
+            // Special: intercept IConnectionPointContainer
+            if (iid == IID_IConnPtContainer)
+            {
+                Log("  *** INTERCEPTING IConnectionPointContainer ***");
+                try
+                {
+                    // Get real CPC from CWHart
+                    IntPtr pUnk = Marshal.GetIUnknownForObject(_real);
+                    Guid g = IID_IConnPtContainer;
+                    IntPtr pRealCPC;
+                    int hrCPC = Marshal.QueryInterface(pUnk, ref g, out pRealCPC);
+                    Marshal.Release(pUnk);
+
+                    if (hrCPC != 0)
+                    {
+                        Log("  Real CWHart doesn't support IConnectionPointContainer! hr=0x" + hrCPC.ToString("X8"));
+                        return CustomQueryInterfaceResult.Failed;
+                    }
+
+                    var realCPC = (IConnectionPointContainer)Marshal.GetObjectForIUnknown(pRealCPC);
+                    Marshal.Release(pRealCPC);
+
+                    var spy = new SpyConnectionPointContainer(realCPC);
+                    _spyCPCs.Add(spy); // prevent GC
+                    ppv = Marshal.GetComInterfaceForObject(spy, typeof(IConnectionPointContainer));
+
+                    Log("  *** IConnectionPointContainer wrapped in SpyCPC ***");
+                    return CustomQueryInterfaceResult.Handled;
+                }
+                catch (Exception ex)
+                {
+                    Log("  IConnectionPointContainer interception ERROR: " + ex.Message);
+                    return CustomQueryInterfaceResult.Failed;
+                }
+            }
+
+            // Everything else: forward to real CWHart
+            IntPtr pUnkReal = Marshal.GetIUnknownForObject(_real);
+            try
+            {
+                Guid gFwd = iid;
+                IntPtr pItf;
+                int hr = Marshal.QueryInterface(pUnkReal, ref gFwd, out pItf);
+                if (hr == 0)
+                {
+                    ppv = pItf; // already AddRef'd by QI
+                    Log("  -> forwarded to real CWHart OK");
+                    return CustomQueryInterfaceResult.Handled;
+                }
+                else
+                {
+                    Log("  -> real CWHart: E_NOINTERFACE (0x" + hr.ToString("X8") + ")");
+                    return CustomQueryInterfaceResult.Failed;
+                }
+            }
+            finally
+            {
+                Marshal.Release(pUnkReal);
+            }
+        }
+
+        internal static string IdentifyInterface(Guid iid)
+        {
+            if (iid == new Guid("00000000-0000-0000-C000-000000000046")) return "IUnknown";
+            if (iid == new Guid("00020400-0000-0000-C000-000000000046")) return "IDispatch";
+            if (iid == new Guid("036D147F-387B-11D4-86E1-00E0987270B9")) return "IDtmInformation";
+            if (iid == new Guid("036D1481-387B-11D4-86E1-00E0987270B9")) return "IDtm";
+            if (iid == new Guid("039ECFC4-9CA8-44E6-944D-B37F288A34D8")) return "IFdtCommunication";
+            if (iid == new Guid("036D147D-387B-11D4-86E1-00E0987270B9")) return "IDtmParameter";
+            if (iid == new Guid("036D1480-387B-11D4-86E1-00E0987270B9")) return "IDtmActiveXInformation";
+            if (iid == new Guid("036D1486-387B-11D4-86E1-00E0987270B9")) return "IDtmActiveXControl";
+            if (iid == new Guid("036D1484-387B-11D4-86E1-00E0987270B9")) return "IFdtChannelSubTopology";
+            if (iid == new Guid("036D1489-387B-11D4-86E1-00E0987270B9")) return "IDtmChannel";
+            if (iid == new Guid("036D1488-387B-11D4-86E1-00E0987270B9")) return "IFdtChannel";
+            if (iid == new Guid("036D1478-387B-11D4-86E1-00E0987270B9")) return "IFdtEvents";
+            if (iid == new Guid("036D147C-387B-11D4-86E1-00E0987270B9")) return "IDtmDocumentation";
+            if (iid == new Guid("F15BA42E-BBF1-42ED-8009-7F664A002CFB")) return "IDtmEvents";
+            if (iid == new Guid("B196B284-BAB4-101A-B69C-00AA00341D07")) return "IConnectionPointContainer";
+            if (iid == new Guid("B196B286-BAB4-101A-B69C-00AA00341D07")) return "IConnectionPoint";
+            if (iid == new Guid("7FD52380-4E07-101B-AE2D-08002B2EC713")) return "IPersistStreamInit";
+            if (iid == new Guid("37D84F60-42CB-11CE-8135-00AA004BB851")) return "IPersistPropertyBag";
+            if (iid == new Guid("0000010A-0000-0000-C000-000000000046")) return "IPersistStorage";
+            if (iid == new Guid("00000112-0000-0000-C000-000000000046")) return "IOleObject";
+            if (iid == new Guid("00000113-0000-0000-C000-000000000046")) return "IOleInPlaceObject";
+            if (iid == new Guid("00000117-0000-0000-C000-000000000046")) return "IOleInPlaceActiveObject";
+            if (iid == new Guid("00000114-0000-0000-C000-000000000046")) return "IOleWindow";
+            if (iid == new Guid("B196B288-BAB4-101A-B69C-00AA00341D07")) return "IOleControl";
+            if (iid == new Guid("CF51ED10-62FE-11CF-BF86-00A0C9034836")) return "IQuickActivate";
+            if (iid == new Guid("0000010D-0000-0000-C000-000000000046")) return "IViewObject";
+            if (iid == new Guid("00000127-0000-0000-C000-000000000046")) return "IViewObject2";
+            if (iid == new Guid("0000010E-0000-0000-C000-000000000046")) return "IDataObject";
+            if (iid == new Guid("0000010C-0000-0000-C000-000000000046")) return "IPersist";
+            if (iid == new Guid("036D1487-387B-11D4-86E1-00E0987270B9")) return "IFdtContainer";
+            if (iid == new Guid("96341E37-9611-46BA-80ED-A85BD73BF518")) return "IBtm";
+            if (iid == new Guid("51E1F44B-D6A1-423D-B11F-AD38EDE78047")) return "IDtm2";
+            return "unknown";
+        }
+
+        internal static void Log(string msg)
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(LogPath);
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                var line = DateTime.Now.ToString("HH:mm:ss.fff") + " [SPY] " + msg;
+                File.AppendAllText(LogPath, line + Environment.NewLine);
+            }
+            catch { }
+        }
+
+        public void Dispose()
+        {
+            Log("CWHartProxy.Dispose()");
+            if (_real != null)
+            {
+                try { Marshal.ReleaseComObject(_real); } catch { }
+                _real = null;
+            }
+        }
+    }
+}

@@ -33,6 +33,7 @@
     <Compile Include="..\HartEngine\ChannelManager.cs" />
     <Compile Include="..\HartEngine\UdpChannel.cs" />
     <Compile Include="..\HartEngine\TcpChannel.cs" />
+    <Compile Include="..\HartEngine\SerialChannel.cs" />
     <!-- Exclude FDT interfaces replaced by embedded Jigfdt types (keep IDtmView) -->
     <Compile Remove="FdtInterfaces\IDtmInformation.cs" />
     <Compile Remove="FdtInterfaces\IDtm.cs" />

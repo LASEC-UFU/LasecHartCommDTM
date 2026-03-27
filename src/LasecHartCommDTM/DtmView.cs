@@ -1,4 +1,5 @@
 using System;
+using System.IO.Ports;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using LasecHartCommDTM.FdtInterfaces;  // IDtmView only
@@ -12,9 +13,24 @@ namespace LasecHartCommDTM
     {
         private readonly CommDtm _dtm;
 
+        // Protocol selection (first field)
+        private ComboBox _cmbMode;           // "Serial" / "TCP/IP"
+
+        // Serial fields
+        private Label _lblComPort;
+        private ComboBox _cmbComPort;
+        private Label _lblBaudRate;
+        private ComboBox _cmbBaudRate;
+
+        // TCP/IP fields
+        private Label _lblIpAddress;
         private TextBox _txtIpAddress;
+        private Label _lblIpPort;
         private NumericUpDown _numIpPort;
-        private ComboBox _cmbProtocol;
+        private Label _lblIpProtocol;
+        private ComboBox _cmbIpProtocol;     // "udp" / "tcp"
+
+        // Common HART fields
         private CheckBox _chkPrimaryMaster;
         private NumericUpDown _numPreambleCount;
         private NumericUpDown _numRetryCount;
@@ -40,7 +56,7 @@ namespace LasecHartCommDTM
         {
             Text = "Lasec HART Communication DTM - Configuration";
             Width = 420;
-            Height = 430;
+            Height = 480;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = true;
@@ -50,79 +66,135 @@ namespace LasecHartCommDTM
             int lblX = 15, ctrlX = 160, lblW = 135, ctrlW = 200;
             int rowH = 30;
 
-            // IP Address
-            Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "IP Address:" });
-            _txtIpAddress = new TextBox { Left = ctrlX, Top = y, Width = ctrlW, Text = "127.0.0.1" };
+            // ---- Mode (first field) ----
+            Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "Communication:" });
+            _cmbMode = new ComboBox { Left = ctrlX, Top = y, Width = ctrlW, DropDownStyle = ComboBoxStyle.DropDownList };
+            _cmbMode.Items.AddRange(new object[] { "Serial", "TCP/IP" });
+            _cmbMode.SelectedIndex = 0;
+            _cmbMode.SelectedIndexChanged += CmbMode_SelectedIndexChanged;
+            Controls.Add(_cmbMode);
+            y += rowH;
+
+            // ---- Serial fields ----
+            _lblComPort = new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "COM Port:" };
+            Controls.Add(_lblComPort);
+            _cmbComPort = new ComboBox { Left = ctrlX, Top = y, Width = ctrlW, DropDownStyle = ComboBoxStyle.DropDownList };
+            try { _cmbComPort.Items.AddRange(SerialPort.GetPortNames()); } catch { }
+            if (_cmbComPort.Items.Count == 0) _cmbComPort.Items.Add("COM1");
+            _cmbComPort.SelectedIndex = 0;
+            Controls.Add(_cmbComPort);
+            y += rowH;
+
+            _lblBaudRate = new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "Baud Rate:" };
+            Controls.Add(_lblBaudRate);
+            _cmbBaudRate = new ComboBox { Left = ctrlX, Top = y, Width = 100, DropDownStyle = ComboBoxStyle.DropDownList };
+            _cmbBaudRate.Items.AddRange(new object[] { "1200", "2400", "4800", "9600", "19200" });
+            _cmbBaudRate.SelectedIndex = 0;  // 1200 = HART default
+            Controls.Add(_cmbBaudRate);
+            y += rowH;
+
+            // ---- TCP/IP fields (initially hidden) ----
+            _lblIpAddress = new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "IP Address:", Visible = false };
+            Controls.Add(_lblIpAddress);
+            _txtIpAddress = new TextBox { Left = ctrlX, Top = y, Width = ctrlW, Text = "127.0.0.1", Visible = false };
             Controls.Add(_txtIpAddress);
-            y += rowH;
 
-            // IP Port
-            Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "IP Port:" });
-            _numIpPort = new NumericUpDown { Left = ctrlX, Top = y, Width = 100, Minimum = 1, Maximum = 65535, Value = 5094 };
+            _lblIpPort = new Label { Left = lblX, Top = y + rowH + 3, Width = lblW, Text = "IP Port:", Visible = false };
+            Controls.Add(_lblIpPort);
+            _numIpPort = new NumericUpDown { Left = ctrlX, Top = y + rowH, Width = 100, Minimum = 1, Maximum = 65535, Value = 5094, Visible = false };
             Controls.Add(_numIpPort);
-            y += rowH;
 
-            // Protocol
-            Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "Protocol:" });
-            _cmbProtocol = new ComboBox { Left = ctrlX, Top = y, Width = 100, DropDownStyle = ComboBoxStyle.DropDownList };
-            _cmbProtocol.Items.AddRange(new object[] { "udp", "tcp" });
-            _cmbProtocol.SelectedIndex = 0;
-            Controls.Add(_cmbProtocol);
-            y += rowH;
+            _lblIpProtocol = new Label { Left = lblX, Top = y + rowH * 2 + 3, Width = lblW, Text = "IP Protocol:", Visible = false };
+            Controls.Add(_lblIpProtocol);
+            _cmbIpProtocol = new ComboBox { Left = ctrlX, Top = y + rowH * 2, Width = 100, DropDownStyle = ComboBoxStyle.DropDownList, Visible = false };
+            _cmbIpProtocol.Items.AddRange(new object[] { "udp", "tcp" });
+            _cmbIpProtocol.SelectedIndex = 0;
+            Controls.Add(_cmbIpProtocol);
 
-            // Primary Master
+            // Skip 3 rows for TCP fields (same space as serial 2 rows + 1 extra)
+            y += rowH * 3;
+
+            // ---- Common HART fields ----
             _chkPrimaryMaster = new CheckBox { Left = ctrlX, Top = y, Width = ctrlW, Text = "Primary Master", Checked = true };
             Controls.Add(_chkPrimaryMaster);
             y += rowH;
 
-            // Preamble Count
             Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "Preamble Count:" });
             _numPreambleCount = new NumericUpDown { Left = ctrlX, Top = y, Width = 100, Minimum = 5, Maximum = 20, Value = 5 };
             Controls.Add(_numPreambleCount);
             y += rowH;
 
-            // Retry Count
             Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "Retry Count:" });
             _numRetryCount = new NumericUpDown { Left = ctrlX, Top = y, Width = 100, Minimum = 1, Maximum = 10, Value = 3 };
             Controls.Add(_numRetryCount);
             y += rowH;
 
-            // Scan Start
             Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "Scan Start Address:" });
             _numScanStart = new NumericUpDown { Left = ctrlX, Top = y, Width = 100, Minimum = 0, Maximum = 63, Value = 0 };
             Controls.Add(_numScanStart);
             y += rowH;
 
-            // Scan Stop
             Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "Scan Stop Address:" });
             _numScanStop = new NumericUpDown { Left = ctrlX, Top = y, Width = 100, Minimum = 0, Maximum = 63, Value = 0 };
             Controls.Add(_numScanStop);
             y += rowH;
 
-            // Burst Mode
             _chkBurstMode = new CheckBox { Left = ctrlX, Top = y, Width = ctrlW, Text = "Burst Mode" };
             Controls.Add(_chkBurstMode);
             y += rowH;
 
-            // Timeout
             Controls.Add(new Label { Left = lblX, Top = y + 3, Width = lblW, Text = "Timeout (ms):" });
             _numTimeout = new NumericUpDown { Left = ctrlX, Top = y, Width = 100, Minimum = 500, Maximum = 60000, Value = 5000, Increment = 500 };
             Controls.Add(_numTimeout);
             y += rowH + 5;
 
-            // Apply button
             _btnApply = new Button { Left = ctrlX, Top = y, Width = 100, Height = 28, Text = "Apply" };
             _btnApply.Click += BtnApply_Click;
             Controls.Add(_btnApply);
         }
 
+        private void CmbMode_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            bool serial = _cmbMode.SelectedIndex == 0; // 0 = Serial, 1 = TCP/IP
+
+            // Serial fields
+            _lblComPort.Visible = serial;
+            _cmbComPort.Visible = serial;
+            _lblBaudRate.Visible = serial;
+            _cmbBaudRate.Visible = serial;
+
+            // TCP/IP fields
+            _lblIpAddress.Visible = !serial;
+            _txtIpAddress.Visible = !serial;
+            _lblIpPort.Visible = !serial;
+            _numIpPort.Visible = !serial;
+            _lblIpProtocol.Visible = !serial;
+            _cmbIpProtocol.Visible = !serial;
+        }
+
         private void LoadCurrentValues()
         {
             if (_dtm == null) return;
+
+            // Protocol mode
+            if (_dtm._protocol == "serial")
+                _cmbMode.SelectedIndex = 0;
+            else
+                _cmbMode.SelectedIndex = 1;
+
+            // Serial
+            int comIdx = _cmbComPort.FindStringExact(_dtm._comPort);
+            if (comIdx >= 0) _cmbComPort.SelectedIndex = comIdx;
+            int baudIdx = _cmbBaudRate.FindStringExact(_dtm._baudRate.ToString());
+            if (baudIdx >= 0) _cmbBaudRate.SelectedIndex = baudIdx;
+
+            // TCP/IP
             _txtIpAddress.Text = _dtm._ipAddress;
             _numIpPort.Value = Math.Max(_numIpPort.Minimum, Math.Min(_numIpPort.Maximum, _dtm._ipPort));
-            _cmbProtocol.SelectedItem = _dtm._protocol;
-            if (_cmbProtocol.SelectedIndex < 0) _cmbProtocol.SelectedIndex = 0;
+            if (_dtm._protocol == "tcp" || _dtm._protocol == "udp")
+                _cmbIpProtocol.SelectedItem = _dtm._protocol;
+
+            // Common
             _chkPrimaryMaster.Checked = _dtm._primaryMaster;
             _numPreambleCount.Value = Math.Max(_numPreambleCount.Minimum, Math.Min(_numPreambleCount.Maximum, _dtm._preambleCount));
             _numRetryCount.Value = Math.Max(_numRetryCount.Minimum, Math.Min(_numRetryCount.Maximum, _dtm._retryCount));
@@ -136,10 +208,18 @@ namespace LasecHartCommDTM
         {
             try
             {
+                string protocol;
+                if (_cmbMode.SelectedIndex == 0)
+                    protocol = "serial";
+                else
+                    protocol = _cmbIpProtocol.SelectedItem.ToString();
+
                 _dtm.ApplyConfiguration(
+                    protocol,
+                    _cmbComPort.SelectedItem.ToString(),
+                    int.Parse(_cmbBaudRate.SelectedItem.ToString()),
                     _txtIpAddress.Text,
                     (int)_numIpPort.Value,
-                    _cmbProtocol.SelectedItem.ToString(),
                     _chkPrimaryMaster.Checked,
                     (int)_numPreambleCount.Value,
                     (int)_numRetryCount.Value,

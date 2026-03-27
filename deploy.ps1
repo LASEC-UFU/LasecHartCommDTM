@@ -1,13 +1,12 @@
 # Execute como Administrador
 $dtmDir = "C:\Program Files (x86)\PACTware 5.0\DTM700\JosueLab\LasecHartCommDTM"
 $dtmDll = "$dtmDir\Dtm\LasecHartCommDTM.dll"
-$src    = "C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\bin\Release\net48"
+$src    = "C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\bin\x86\Release\net48"
 $regasm = "C:\Windows\Microsoft.NET\Framework\v4.0.30319\regasm.exe"
 
 Write-Host "1. Copiando DLLs..."
 New-Item -ItemType Directory -Force -Path "$dtmDir\Dtm" | Out-Null
 Copy-Item "$src\LasecHartCommDTM.dll" "$dtmDir\Dtm\" -Force
-Copy-Item "$src\HartEngine.dll"       "$dtmDir\Dtm\" -Force
 
 Write-Host "2. Re-registrando COM (32-bit)..."
 & $regasm /codebase $dtmDll
