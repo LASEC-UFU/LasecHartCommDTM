@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Gk6j8sgYdFQ=",
+  "dgSpecHash": "Y7ybMg26OFQ=",
   "success": true,
-  "projectFilePath": "C:\\SourceCode\\LasecHartCommDTM\\src\\LasecHartCommDTM\\LasecHartCommDTM.csproj",
+  "projectFilePath": "C:\\SourceCode\\LasecHartCommDTM\\.claude\\worktrees\\happy-albattani\\src\\LasecHartCommDTM\\LasecHartCommDTM.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\josuemorais\\.nuget\\packages\\microsoft.netframework.referenceassemblies\\1.0.3\\microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512",
     "C:\\Users\\josuemorais\\.nuget\\packages\\microsoft.netframework.referenceassemblies.net48\\1.0.3\\microsoft.netframework.referenceassemblies.net48.1.0.3.nupkg.sha512"

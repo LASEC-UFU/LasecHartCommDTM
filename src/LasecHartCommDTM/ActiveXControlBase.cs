@@ -45,19 +45,41 @@ namespace LasecHartCommDTM
         private static readonly Guid IID_IDispatch               = new Guid("00020400-0000-0000-C000-000000000046");
         private static readonly Guid IID_IConnectionPointContainer = new Guid("B196B284-BAB4-101A-B69C-00AA00341D07");
         private static readonly Guid IID_IProvideClassInfo       = new Guid("B196B283-BAB4-101A-B69C-00AA00341D07");
+        // FDT interfaces that PACTware queries on ActiveX controls
+        private static readonly Guid IID_IDtmActiveXControl      = new Guid("036D1486-387B-11D4-86E1-00E0987270B9");
 
         private bool _uiCreated;
 
         // ----------------------------------------------------------------
-        // ICustomQueryInterface — log all QI from PACTware
-        // Returns NotHandled so the CCW's normal QI handles everything
-        // (OLE interfaces from base Control are exposed automatically).
+        // ICustomQueryInterface — log all QI from PACTware.
+        // CRITICAL: Explicitly handle IDtmActiveXControl because the CCW
+        // may not expose it automatically (the CLR sometimes fails to
+        // include managed-defined COM interfaces in the CCW vtable when
+        // the class also inherits from UserControl with internal OLE interfaces).
         // ----------------------------------------------------------------
         public CustomQueryInterfaceResult GetInterface(ref Guid iid, out IntPtr ppv)
         {
             ppv = IntPtr.Zero;
             string name = IdentifyInterface(iid);
             CommDtm.Log(GetType().Name + ".QI " + iid.ToString("B") + " (" + name + ")");
+
+            // Explicitly provide IDtmActiveXControl — the CCW doesn't expose it
+            // automatically because UserControl's internal OLE interfaces confuse
+            // the CLR's interface map for managed COM interfaces.
+            if (iid == IID_IDtmActiveXControl)
+            {
+                try
+                {
+                    ppv = Marshal.GetComInterfaceForObject(this, typeof(IDtmActiveXControl));
+                    CommDtm.Log(GetType().Name + ".QI -> HANDLED IDtmActiveXControl");
+                    return CustomQueryInterfaceResult.Handled;
+                }
+                catch (Exception ex)
+                {
+                    CommDtm.Log(GetType().Name + ".QI IDtmActiveXControl ERROR: " + ex.Message);
+                }
+            }
+
             return CustomQueryInterfaceResult.NotHandled;
         }
 
@@ -78,6 +100,7 @@ namespace LasecHartCommDTM
             if (iid == IID_IDispatch) return "IDispatch";
             if (iid == IID_IConnectionPointContainer) return "IConnectionPointContainer";
             if (iid == IID_IProvideClassInfo) return "IProvideClassInfo";
+            if (iid == IID_IDtmActiveXControl) return "IDtmActiveXControl";
             return "unknown";
         }
 

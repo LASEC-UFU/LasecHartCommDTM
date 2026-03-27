@@ -8,3 +8,13 @@ C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\x86\Release\net48\LasecH
 C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\x86\Release\net48\LasecHartCommDTM.sourcelink.json
 C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\x86\Release\net48\LasecHartCommDTM.dll
 C:\SourceCode\LasecHartCommDTM\src\LasecHartCommDTM\obj\x86\Release\net48\LasecHartCommDTM.pdb
+C:\SourceCode\LasecHartCommDTM\.claude\worktrees\happy-albattani\src\LasecHartCommDTM\bin\x86\Release\net48\LasecHartCommDTM.dll
+C:\SourceCode\LasecHartCommDTM\.claude\worktrees\happy-albattani\src\LasecHartCommDTM\bin\x86\Release\net48\LasecHartCommDTM.pdb
+C:\SourceCode\LasecHartCommDTM\.claude\worktrees\happy-albattani\src\LasecHartCommDTM\obj\x86\Release\net48\LasecHartCommDTM.csproj.AssemblyReference.cache
+C:\SourceCode\LasecHartCommDTM\.claude\worktrees\happy-albattani\src\LasecHartCommDTM\obj\x86\Release\net48\LasecHartCommDTM.GeneratedMSBuildEditorConfig.editorconfig
+C:\SourceCode\LasecHartCommDTM\.claude\worktrees\happy-albattani\src\LasecHartCommDTM\obj\x86\Release\net48\LasecHartCommDTM.AssemblyInfoInputs.cache
+C:\SourceCode\LasecHartCommDTM\.claude\worktrees\happy-albattani\src\LasecHartCommDTM\obj\x86\Release\net48\LasecHartCommDTM.AssemblyInfo.cs
+C:\SourceCode\LasecHartCommDTM\.claude\worktrees\happy-albattani\src\LasecHartCommDTM\obj\x86\Release\net48\LasecHartCommDTM.csproj.CoreCompileInputs.cache
+C:\SourceCode\LasecHartCommDTM\.claude\worktrees\happy-albattani\src\LasecHartCommDTM\obj\x86\Release\net48\LasecHartCommDTM.sourcelink.json
+C:\SourceCode\LasecHartCommDTM\.claude\worktrees\happy-albattani\src\LasecHartCommDTM\obj\x86\Release\net48\LasecHartCommDTM.dll
+C:\SourceCode\LasecHartCommDTM\.claude\worktrees\happy-albattani\src\LasecHartCommDTM\obj\x86\Release\net48\LasecHartCommDTM.pdb

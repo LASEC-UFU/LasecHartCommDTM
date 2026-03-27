@@ -420,11 +420,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\SourceCode\\LasecHartCommDTM\\src\\LasecHartCommDTM\\LasecHartCommDTM.csproj",
+      "projectUniqueName": "C:\\SourceCode\\LasecHartCommDTM\\.claude\\worktrees\\happy-albattani\\src\\LasecHartCommDTM\\LasecHartCommDTM.csproj",
       "projectName": "LasecHartCommDTM",
-      "projectPath": "C:\\SourceCode\\LasecHartCommDTM\\src\\LasecHartCommDTM\\LasecHartCommDTM.csproj",
+      "projectPath": "C:\\SourceCode\\LasecHartCommDTM\\.claude\\worktrees\\happy-albattani\\src\\LasecHartCommDTM\\LasecHartCommDTM.csproj",
       "packagesPath": "C:\\Users\\josuemorais\\.nuget\\packages\\",
-      "outputPath": "C:\\SourceCode\\LasecHartCommDTM\\src\\LasecHartCommDTM\\obj\\",
+      "outputPath": "C:\\SourceCode\\LasecHartCommDTM\\.claude\\worktrees\\happy-albattani\\src\\LasecHartCommDTM\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\josuemorais\\AppData\\Roaming\\NuGet\\NuGet.Config"

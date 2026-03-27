@@ -51,18 +51,30 @@ New-Item -ItemType Directory -Force -Path (Split-Path $logFile) | Out-Null
 # 5. Verify registration
 Write-Host ""
 Write-Host "5. Verificando registro COM..." -ForegroundColor Green
-Write-Host "--- CommDtm CLSID ---"
-reg query "HKLM\SOFTWARE\WOW6432Node\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}" /v "" 2>&1
-Write-Host "--- ConfigControl CLSID ---"
-reg query "HKLM\SOFTWARE\WOW6432Node\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20030}" /v "" 2>&1
-Write-Host "--- LogControl CLSID ---"
-reg query "HKLM\SOFTWARE\WOW6432Node\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20040}" /v "" 2>&1
-Write-Host "--- DeviceAddressControl CLSID ---"
-reg query "HKLM\SOFTWARE\WOW6432Node\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20050}" /v "" 2>&1
-Write-Host "--- DtmAddressControl CLSID ---"
-reg query "HKLM\SOFTWARE\WOW6432Node\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20060}" /v "" 2>&1
-Write-Host "--- AboutControl CLSID ---"
-reg query "HKLM\SOFTWARE\WOW6432Node\Classes\CLSID\{B4B6B3E7-639D-460B-B9A0-6C7F7EB20070}" /v "" 2>&1
+$clsids = @{
+    "CommDtm"              = "{B4B6B3E7-639D-460B-B9A0-6C7F7EB20010}"
+    "ConfigControl"        = "{B4B6B3E7-639D-460B-B9A0-6C7F7EB20030}"
+    "LogControl"           = "{B4B6B3E7-639D-460B-B9A0-6C7F7EB20040}"
+    "DeviceAddressControl" = "{B4B6B3E7-639D-460B-B9A0-6C7F7EB20050}"
+    "DtmAddressControl"    = "{B4B6B3E7-639D-460B-B9A0-6C7F7EB20060}"
+    "AboutControl"         = "{B4B6B3E7-639D-460B-B9A0-6C7F7EB20070}"
+}
+foreach ($name in $clsids.Keys) {
+    $clsid = $clsids[$name]
+    $path = "HKLM:\SOFTWARE\WOW6432Node\Classes\CLSID\$clsid"
+    if (Test-Path $path) {
+        Write-Host "  [OK] $name $clsid" -ForegroundColor Green
+    } else {
+        $path2 = "HKCR:\CLSID\$clsid"
+        Write-Host "  [??] $name $clsid (not in WOW6432Node, checking HKCR...)" -ForegroundColor Yellow
+        reg query "HKCR\CLSID\$clsid" /ve 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "       Found in HKCR" -ForegroundColor Green
+        } else {
+            Write-Host "       NOT REGISTERED" -ForegroundColor Red
+        }
+    }
+}
 
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
