@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CWHartSpy")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+756cb1a70dec268011833da19f095e6954592aa6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+df1c27a3543b78390a290ddc2654653fa3318a50")]
 [assembly: System.Reflection.AssemblyProductAttribute("CWHartSpy")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CWHartSpy")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

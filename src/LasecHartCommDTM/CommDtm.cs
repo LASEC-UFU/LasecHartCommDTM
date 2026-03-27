@@ -311,7 +311,11 @@ namespace LasecHartCommDTM
 
     [Guid("B4B6B3E7-639D-460B-B9A0-6C7F7EB20010")]
     [ClassInterface(ClassInterfaceType.None)]
-    [ComSourceInterfaces(typeof(IDtmEventsSource))]
+    // NOTE: [ComSourceInterfaces] REMOVED — CWHart has NO source interfaces in its TypeLib.
+    // When PACTware sees source interfaces, it waits for events (e.g. OnPreparedToReleaseCommunication)
+    // after calling PrepareToReleaseCommunication, causing 60s+ timeouts when events don't arrive.
+    // Without it, PACTware proceeds immediately on return value (like CWHart).
+    // Explicit IConnectionPointContainer is kept for future use if needed.
     [ComVisible(true)]
     public class CommDtm : IDtmInformation, IDtm, IFdtCommunication, IDtmParameter, IDtmActiveXInformation, IDtmChannel, IFdtChannel, IFdtChannelSubTopology, IFdtEvents, IDtmDocumentation, IPersistStreamInit, IPersistPropertyBag, ICustomQueryInterface, IConnectionPointContainer
     {
@@ -441,13 +445,9 @@ namespace LasecHartCommDTM
         void IConnectionPointContainer.FindConnectionPoint(ref Guid riid, out IConnectionPoint ppCP)
         {
             Log("IConnectionPointContainer.FindConnectionPoint(riid=" + riid.ToString("B") + ")");
-            Guid eventsIID = new Guid("F15BA42E-BBF1-42ED-8009-7F664A002CFB");
-            if (riid == eventsIID)
-            {
-                ppCP = GetOrCreateCP();
-                Log("FindConnectionPoint -> returned DtmEventsConnectionPoint OK");
-                return;
-            }
+            // CWHart (VB6) returns CONNECT_E_NOCONNECTION for IDtmEventsSource.
+            // Returning a CP here makes PACTware think we support events and WAIT for them.
+            // Always fail to match CWHart behavior.
             Log("FindConnectionPoint -> CONNECT_E_NOCONNECTION for " + riid.ToString("B"));
             ppCP = null;
             Marshal.ThrowExceptionForHR(unchecked((int)0x80040200)); // CONNECT_E_NOCONNECTION
@@ -474,6 +474,8 @@ namespace LasecHartCommDTM
         internal int    _scanStop      = 0;           // 0-63  (poll address fim)
         internal bool   _burstMode     = false;       // BurstMode (0/1)
         internal int    _timeout       = 5000;        // timeout em ms
+        internal bool   _dataLoaded    = false;       // true after ApplyConfiguration (dataSetState="allDataLoaded")
+        internal bool   _isDirty       = false;       // tracks unsaved changes for IsDirty()
 
         // Known FDT interface GUIDs (from Jigfdt.fdt100.dll)
         private static readonly Guid IID_IDtmInformation      = new Guid("036D147F-387B-11D4-86E1-00E0987270B9");
@@ -622,9 +624,13 @@ namespace LasecHartCommDTM
                 }
                 if (iid == IID_IConnPtContainer)
                 {
-                    ppv = Marshal.GetComInterfaceForObject(this, typeof(IConnectionPointContainer));
-                    Log("QI -> HANDLED IConnectionPointContainer (explicit)");
-                    return CustomQueryInterfaceResult.Handled;
+                    // CRITICAL: CWHart does NOT expose IConnectionPointContainer.
+                    // When PACTware sees IConnectionPointContainer, it assumes the DTM
+                    // fires events (OnOnlineStateChanged, etc.) and WAITS for them.
+                    // This causes a 46s timeout after SetCommunication and the DTM
+                    // never goes green. Return E_NOINTERFACE like CWHart.
+                    Log("QI -> BLOCKED IConnectionPointContainer (CWHart doesn't expose it)");
+                    return CustomQueryInterfaceResult.Failed;
                 }
             }
             catch (Exception ex)
@@ -912,16 +918,29 @@ namespace LasecHartCommDTM
 
             if (communication == null)
             {
-                // Top-level CommDTM: mark as ready for ConnectRequest.
-                // Do NOT open TCP here — physical channel opens in ConnectRequest
-                // when a Device DTM (or PACTware) actually needs communication.
+                // Top-level CommDTM: mark as ready for communication.
+                // CWHart spy shows: SetCommunication(NULL) returns true, takes ~758ms,
+                // and makes container calls (SaveRequest) during those 758ms.
+                // SaveRequest triggers PACTware to call GetParameters → update tree tag.
                 _connected = true;
-                Log("SetCommunication: top-level CommDTM, marked ready, firing events");
-                // PACTware subscribes to events via IConnectionPointContainer (exempt from
-                // ICustomQueryInterface logging). Fire OnOnlineStateChanged so PACTware
-                // marks us as "green" (online).
-                FireOnlineStateChanged(true);
-                FireFunctionChanged();
+                _dataLoaded = true;
+                Log("SetCommunication: comm=null, marked ready");
+
+                // NOTE: CWHart does NOT call SaveRequest inside SetCommunication.
+                // The save cycle was already completed before PACTware calls SetCommunication.
+                // CWHart spends ~783ms opening the COM port, during which PACTware
+                // calls GetFunctions to check the DTM's available functions.
+                // We pump messages here to allow that GetFunctions callback.
+                Log("SetCommunication: pumping messages (like CWHart 783ms)");
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                while (sw.ElapsedMilliseconds < 800)
+                {
+                    System.Windows.Forms.Application.DoEvents();
+                    System.Threading.Thread.Sleep(10);
+                }
+                Log("SetCommunication: pump done after " + sw.ElapsedMilliseconds + "ms");
+
+                Log("SetCommunication: returning true (no events)");
                 return true;
             }
 
@@ -971,15 +990,7 @@ namespace LasecHartCommDTM
         {
             Log("PrepareToRelease()");
             _connected = false;
-            try
-            {
-                string tag = _systemTag ?? "";
-                int sinkCount = _eventsCP != null ? _eventsCP.SinkCount : 0;
-                Log("Firing OnPreparedToRelease(tag=" + tag + ") delegates=" + (_evPreparedToRelease != null ? "YES" : "NO") + " cpSinks=" + sinkCount);
-                _evPreparedToRelease?.Invoke(tag);
-                FireCPEvent(13, "OnPreparedToRelease", tag);
-            }
-            catch (Exception ex) { Log("OnPreparedToRelease ERROR: " + ex.Message); }
+            // CWHart returns true in 1ms with NO events.
             return true;
         }
 
@@ -989,16 +1000,11 @@ namespace LasecHartCommDTM
             _manager?.Dispose();
             _manager = new ChannelManager();
             _connected = false;
-            FireOnlineStateChanged(false);
-            try
-            {
-                string tag = _systemTag ?? "";
-                int sinkCount = _eventsCP != null ? _eventsCP.SinkCount : 0;
-                Log("Firing OnPreparedToReleaseCommunication(tag=" + tag + ") delegates=" + (_evPreparedToReleaseCommunication != null ? "YES" : "NO") + " cpSinks=" + sinkCount);
-                _evPreparedToReleaseCommunication?.Invoke(tag);
-                FireCPEvent(14, "OnPreparedToReleaseCommunication", tag);
-            }
-            catch (Exception ex) { Log("OnPreparedToReleaseCommunication ERROR: " + ex.Message); }
+            // CWHart returns true in 1ms with NO events.
+            // PACTware proceeds immediately to ReleaseCommunication (118ms later).
+            // DO NOT fire events here — [ComSourceInterfaces] was removed,
+            // so PACTware doesn't wait for events.
+            Log("PrepareToReleaseCommunication -> true (no events)");
             return true;
         }
 
@@ -1031,12 +1037,8 @@ namespace LasecHartCommDTM
         {
             Log("GetFunctions(state=" + (operationState ?? "null") + ")");
 
-            // CWHart resolves macros $(NOTCONNECTED)/$(CONNECTED) internally
-            // before returning the XML. PACTware does NOT resolve these macros —
-            // if returned as literal strings, PACTware ignores the function.
-            string notConnected = _connected ? "0" : "1";
-            string connected    = _connected ? "1" : "0";
-
+            // CWHart returns ALL functions with enabled="1" always,
+            // regardless of connection state. PACTware manages enable/disable externally.
             string xml =
                 "<?xml version=\"1.0\"?>" +
                 "<FDT xmlns=\"x-schema:DTMFunctionsSchema.xml\"" +
@@ -1047,20 +1049,20 @@ namespace LasecHartCommDTM
                     // StandardFunction fdtConfiguration → "Parâmetro" no PACTware
                     "<StandardFunction fdt:name=\"Configuration\" help=\"\" functionId=\"1\"" +
                     " resizableStandardFunction=\"1\" printableStandardFunction=\"1\">" +
-                      "<Status toggle=\"0\" checked=\"0\" enabled=\"" + notConnected + "\" hidden=\"0\" separator=\"0\"/>" +
+                      "<Status toggle=\"0\" checked=\"0\" enabled=\"1\" hidden=\"0\" separator=\"0\"/>" +
                       "<appId:ApplicationId applicationId=\"fdtConfiguration\"/>" +
                     "</StandardFunction>" +
 
-                    // Custom: Change device address — enabled only when CONNECTED
+                    // Custom: Change device address
                     "<Function label=\"Change device address\" fdt:name=\"mnChangeDeviceAddress\"" +
                     " help=\"Change device address\" functionId=\"20\" hasGUI=\"1\" resizable=\"1\">" +
-                      "<Status toggle=\"1\" checked=\"0\" enabled=\"" + connected + "\" hidden=\"0\" separator=\"0\"/>" +
+                      "<Status toggle=\"1\" checked=\"0\" enabled=\"1\" hidden=\"0\" separator=\"0\"/>" +
                     "</Function>" +
 
-                    // Custom: Change DTM address — enabled only when NOT CONNECTED
+                    // Custom: Change DTM address
                     "<Function label=\"Change DTM address\" fdt:name=\"mnChangeDtmAddress\"" +
                     " help=\"Change DTM address\" functionId=\"30\" hasGUI=\"1\" resizable=\"1\">" +
-                      "<Status toggle=\"1\" checked=\"0\" enabled=\"" + notConnected + "\" hidden=\"0\" separator=\"0\"/>" +
+                      "<Status toggle=\"1\" checked=\"0\" enabled=\"1\" hidden=\"0\" separator=\"0\"/>" +
                     "</Function>" +
 
                     // Custom: Communication log — always enabled
@@ -1523,12 +1525,14 @@ namespace LasecHartCommDTM
             // Retorna XML com os parâmetros atuais do CommDTM
             // Estrutura CWHart: DtmDeviceType + DtmDevice com ChannelReferences + ExportedVariables
             const string hartBusUuid = "036D1498-387B-11D4-86E1-00E0987270B9";
+            string dataSetState = _dataLoaded ? "allDataLoaded" : "default";
             string deviceTag = _protocol == "serial"
                 ? _comPort.ToUpperInvariant()
                 : _protocol.ToUpperInvariant() + " " + _ipAddress + ":" + _ipPort;
             string xml =
                 "<?xml version=\"1.0\"?>" +
-                "<FDT xmlns=\"x-schema:DTMParameterSchema.xml\" xmlns:fdt=\"x-schema:FDTDataTypesSchema.xml\">" +
+                "<FDT xmlns=\"x-schema:DTMParameterSchema.xml\" xmlns:fdt=\"x-schema:FDTDataTypesSchema.xml\"" +
+                " fdt:storageState=\"persistent\" fdt:dataSetState=\"" + dataSetState + "\">" +
                   "<fdt:DtmDeviceType readAccess=\"0\" writeAccess=\"0\">" +
                     "<fdt:VersionInformation name=\"Lasec HART Communication DTM\" vendor=\"JosueLab\" version=\"1.0.0\" date=\"2024-01-01\"/>" +
                     "<fdt:SupportedLanguages>" +
@@ -1540,7 +1544,7 @@ namespace LasecHartCommDTM
                       "</fdt:BusCategory>" +
                     "</fdt:BusCategories>" +
                   "</fdt:DtmDeviceType>" +
-                  "<DtmDevice tag=\"" + HartXmlHelper.XmlEscape(deviceTag) + "\">" +
+                  "<DtmDevice fdt:tag=\"" + HartXmlHelper.XmlEscape(deviceTag) + "\">" +
                     "<fdt:ChannelReferences>" +
                       "<fdt:ChannelReference idref=\"HARTCH\"/>" +
                     "</fdt:ChannelReferences>" +
@@ -1608,6 +1612,7 @@ namespace LasecHartCommDTM
                         else if (name == "timeout" && numVal != null) int.TryParse(numVal, out _timeout);
                     }
                 }
+                _dataLoaded = true;
                 Log("IDtmParameter.SetParameters() applied: protocol=" + _protocol +
                     (_protocol == "serial" ? " port=" + _comPort + " baud=" + _baudRate
                                           : " " + _protocol + "://" + _ipAddress + ":" + _ipPort));
@@ -1656,6 +1661,9 @@ namespace LasecHartCommDTM
             _scanStop      = Math.Max(0, Math.Min(63, scanStop));
             _burstMode     = burstMode;
             _timeout       = timeout <= 0 ? 5000 : timeout;
+
+            _dataLoaded = true;
+            _isDirty = true;
 
             Log("ApplyConfiguration: protocol=" + _protocol +
                 (_protocol == "serial" ? " port=" + _comPort + " baud=" + _baudRate
@@ -1715,6 +1723,8 @@ namespace LasecHartCommDTM
 
         // ----------------------------------------------------------------
         // IPersistStreamInit — PACTware requires this for DTM state persistence
+        // CWHart writes real data to the stream. PACTware only calls
+        // GetParameters (to refresh fdt:tag) AFTER Save if data was written.
         // ----------------------------------------------------------------
         void IPersistStreamInit.GetClassID(out Guid pClassID)
         {
@@ -1724,24 +1734,81 @@ namespace LasecHartCommDTM
 
         int IPersistStreamInit.IsDirty()
         {
-            Log("IPersistStreamInit.IsDirty() -> S_FALSE");
-            return 1; // S_FALSE = not dirty
+            int hr = _isDirty ? 0 : 1; // S_OK=dirty, S_FALSE=clean
+            Log("IPersistStreamInit.IsDirty() -> " + (hr == 0 ? "S_OK (dirty)" : "S_FALSE"));
+            return hr;
         }
 
         void IPersistStreamInit.Load(IntPtr pStm)
         {
             Log("IPersistStreamInit.Load()");
+            try
+            {
+                var stm = (System.Runtime.InteropServices.ComTypes.IStream)
+                    Marshal.GetObjectForIUnknown(pStm);
+                byte[] lenBuf = new byte[4];
+                stm.Read(lenBuf, 4, IntPtr.Zero);
+                int len = BitConverter.ToInt32(lenBuf, 0);
+                if (len > 0 && len < 65536)
+                {
+                    byte[] data = new byte[len];
+                    stm.Read(data, len, IntPtr.Zero);
+                    string cfg = System.Text.Encoding.UTF8.GetString(data);
+                    string[] p = cfg.Split('\0');
+                    if (p.Length >= 12)
+                    {
+                        _protocol      = p[0];
+                        _comPort       = p[1];
+                        _baudRate      = int.Parse(p[2]);
+                        _ipAddress     = p[3];
+                        _ipPort        = int.Parse(p[4]);
+                        _primaryMaster = p[5] == "1";
+                        _preambleCount = int.Parse(p[6]);
+                        _retryCount    = int.Parse(p[7]);
+                        _scanStart     = int.Parse(p[8]);
+                        _scanStop      = int.Parse(p[9]);
+                        _burstMode     = p[10] == "1";
+                        _timeout       = int.Parse(p[11]);
+                        _dataLoaded    = true;
+                        Log("Load: restored config: " + _protocol + " " + _comPort + " baud=" + _baudRate);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log("Load error: " + ex.Message);
+            }
         }
 
         void IPersistStreamInit.Save(IntPtr pStm, bool fClearDirty)
         {
             Log("IPersistStreamInit.Save(clearDirty=" + fClearDirty + ")");
+            try
+            {
+                string cfg = _protocol + "\0" + _comPort + "\0" + _baudRate + "\0" +
+                    _ipAddress + "\0" + _ipPort + "\0" +
+                    (_primaryMaster ? "1" : "0") + "\0" + _preambleCount + "\0" +
+                    _retryCount + "\0" + _scanStart + "\0" + _scanStop + "\0" +
+                    (_burstMode ? "1" : "0") + "\0" + _timeout;
+                byte[] data = System.Text.Encoding.UTF8.GetBytes(cfg);
+                var stm = (System.Runtime.InteropServices.ComTypes.IStream)
+                    Marshal.GetObjectForIUnknown(pStm);
+                byte[] lenBuf = BitConverter.GetBytes(data.Length);
+                stm.Write(lenBuf, lenBuf.Length, IntPtr.Zero);
+                stm.Write(data, data.Length, IntPtr.Zero);
+                if (fClearDirty) _isDirty = false;
+                Log("Save: wrote " + (4 + data.Length) + " bytes (" + _comPort + ")");
+            }
+            catch (Exception ex)
+            {
+                Log("Save error: " + ex.Message);
+            }
         }
 
         void IPersistStreamInit.GetSizeMax(out long pcbSize)
         {
-            pcbSize = 0;
-            Log("IPersistStreamInit.GetSizeMax()");
+            pcbSize = 4096; // generous estimate
+            Log("IPersistStreamInit.GetSizeMax() -> " + pcbSize);
         }
 
         void IPersistStreamInit.InitNew()

@@ -154,6 +154,11 @@ namespace CWHartSpy
 
         // ================================================================
         // ICustomQueryInterface — route QIs
+        // IMPORTANT: Do NOT call Marshal.GetComInterfaceForObject(this, ...)
+        // inside GetInterface — it triggers recursive GetInterface calls!
+        // For interfaces we implement, return NotHandled so the CLR's
+        // standard CCW mechanism exposes them. For everything else,
+        // forward to real CWHart.
         // ================================================================
         public CustomQueryInterfaceResult GetInterface(ref Guid iid, out IntPtr ppv)
         {
@@ -161,35 +166,11 @@ namespace CWHartSpy
             string name = IdentifyInterface(iid);
             Log("QI " + name + " " + iid.ToString("B"));
 
-            // Proxied FDT interfaces — return our CCW so we intercept method calls
-            Type pt = GetProxiedType(iid);
-            if (pt != null)
+            // Interfaces we implement on this class → NotHandled = CLR creates CCW vtable
+            if (GetProxiedType(iid) != null || iid == IID_IConnPtContainer)
             {
-                try
-                {
-                    ppv = Marshal.GetComInterfaceForObject(this, pt);
-                    Log("  -> PROXIED via " + pt.Name);
-                    return CustomQueryInterfaceResult.Handled;
-                }
-                catch (Exception ex)
-                {
-                    Log("  -> PROXY ERROR: " + ex.Message);
-                }
-            }
-
-            // IConnectionPointContainer — also proxied via our implementation
-            if (iid == IID_IConnPtContainer)
-            {
-                try
-                {
-                    ppv = Marshal.GetComInterfaceForObject(this, typeof(IConnectionPointContainer));
-                    Log("  -> PROXIED IConnectionPointContainer");
-                    return CustomQueryInterfaceResult.Handled;
-                }
-                catch (Exception ex)
-                {
-                    Log("  -> CPC PROXY ERROR: " + ex.Message);
-                }
+                Log("  -> PROXIED (CCW NotHandled)");
+                return CustomQueryInterfaceResult.NotHandled;
             }
 
             // Everything else — forward raw pointer from real CWHart
@@ -233,16 +214,20 @@ namespace CWHartSpy
         bool IDtm.Environment(string systemTag, IFdtContainer container)
         {
             Log(">> IDtm.Environment(tag=" + Q(systemTag) + ", container=" + (container == null ? "null" : "obj") + ")");
-            IFdtContainer wrapped = container;
-            if (container != null)
+            try
             {
-                var spy = new ContainerSpy(container);
-                _prevent.Add(spy);
-                wrapped = spy;
+                // Pass PACTware's real container directly to CWHart (no wrapping)
+                // ContainerSpy was causing VB6 to hang — COM marshaling issue
+                // We'll log container callbacks via a separate mechanism later
+                bool r = _rDtm.Environment(systemTag, container);
+                Log("<< IDtm.Environment -> " + r);
+                return r;
             }
-            bool r = _rDtm.Environment(systemTag, wrapped);
-            Log("<< IDtm.Environment -> " + r);
-            return r;
+            catch (Exception ex)
+            {
+                Log("<< IDtm.Environment EXCEPTION: " + ex);
+                throw;
+            }
         }
 
         bool IDtm.InitNew(string deviceType)
