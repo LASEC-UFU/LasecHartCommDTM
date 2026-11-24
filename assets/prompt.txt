@@ -1,0 +1,474 @@
+PS C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8.1 Tools> [System.Reflection.Assembly]::ReflectionOnlyLoadFrom("C:\SourceCode\LasecHartCommDTM\dlls\FDTInterop.dll").GetTypes() | Select Name, GUID | Format-Table -AutoSize Name GUID ---- ---- IFdtContainer 036d1487-387b-11d4-86e1-00e0987270b9 IFdtChannelCollection e4f31a10-45bf-11d4-bbb3-0060080993ff IFdtChannel 036d1488-387b-11d4-86e1-00e0987270b9 IFdtCommunication 039ecfc4-9ca8-44e6-944d-b37f288a34d8 IFdtCommunicationEvents 036d1485-387b-11d4-86e1-00e0987270b9 IDtm 036d1481-387b-11d4-86e1-00e0987270b9 IDtmActiveXInformation 036d1480-387b-11d4-86e1-00e0987270b9 IDtmApplication 036d147e-387b-11d4-86e1-00e0987270b9 IDtmChannel 036d1489-387b-11d4-86e1-00e0987270b9 IDtmDocumentation 036d147c-387b-11d4-86e1-00e0987270b9 IDtmDiagnosis 036d1476-387b-11d4-86e1-00e0987270b9 IDtmImportExport 036d148e-387b-11d4-86e1-00e0987270b9 ISequentialStream 0c733a30-2a1c-11ce-ade5-00aa0044773d IStream 0000000c-0000-0000-c000-000000000046 _LARGE_INTEGER 897157a3-f9db-3688-9025-4bfde8bcab52 _ULARGE_INTEGER 2a52cd27-9655-3215-aaa3-463075215b73 tagSTATSTG ded7359d-1dd4-36aa-8662-a59acbd70db2 _FILETIME 431d8dd9-8732-3495-a8d3-900d451ffbe6 IDtmInformation 036d147f-387b-11d4-86e1-00e0987270b9 IDtmOnlineDiagnosis 036d1477-387b-11d4-86e1-00e0987270b9 IDtmOnlineParameter 036d1483-387b-11d4-86e1-00e0987270b9 IDtmParameter 036d147d-387b-11d4-86e1-00e0987270b9 IFdtEvents 036d1478-387b-11d4-86e1-00e0987270b9 IDtmActiveXControl 036d1486-387b-11d4-86e1-00e0987270b9 IFdtChannelActiveXInformation f2bd2970-13fa-470c-a28c-6a5969a04037 IFdtChannelSubTopology 036d1484-387b-11d4-86e1-00e0987270b9 IFdtFunctionBlockData 036d1475-387b-11d4-86e1-00e0987270b9 IFdtChannelActiveXControl 036d148b-387b-11d4-86e1-00e0987270b9 IDtmEvents f15ba42e-bbf1-42ed-8009-7f664a002cfb IDtmAuditTrailEvents 036d1479-387b-11d4-86e1-00e0987270b9 IFdtActiveX 5959f485-2c51-4a55-80a7-dd3c45d8baf2 IFdtBulkData 036d148d-387b-11d4-86e1-00e0987270b9 IFdtDialog 15c19931-6161-11d4-a0a9-005004011a04 IFdtTopology 036d147a-387b-11d4-86e1-00e0987270b9 IBtm 96341e37-9611-46ba-80ed-a85bd73bf518 IBtmInformation 87dcc81c-9f97-46c2-a483-5a89b155204c IBtmParameter 43d592cc-5f8e-4eca-9365-8d4749390c55 IBtmActiveXControl 0e0418b4-9bc6-4a28-b980-5d3e7f457e4f IFdtBtmTopology 18250f40-73fb-4c22-a0f1-db2a11b3fe8d IFdtActiveX2 1922c2de-4ee7-4085-878a-80ac6c6728ad IDtm2 51e1f44b-d6a1-423d-b11f-ad38ede78047 IDtmRedundancyEvents 04808a4c-90c3-45a7-b69e-034a2fa8314d IDtmEvents2 494ffd2b-6e58-4e42-80db-85ebdf6e2cf5 IFdtChannelActiveXControl2 73757f49-f3a6-41f7-bea0-1a3e59d69d5b IDtmScanEvents 515590b9-5177-474a-9310-708a3e785b2b IFdtChannelScan 64a4310d-f9ee-411d-b4f9-51d3360df359 IFdtChannelSubTopology2 6359fbf1-d373-4202-90e8-e696c37739d4 IDtmInformation2 c2934cc6-b72d-4611-890f-1c6531d1f8eb IDtmHardwareIdentification 9a1dd233-987c-43d1-9424-da5c1fc6f292 IFdtCommunicationEvents2 7a0aef6a-a9e7-4673-8f45-01b8ac28f55d IDtmSingleDeviceDataAccess d67240e4-664b-44b0-b692-a1d1ed3fb8f8 IDtmSingleInstanceDataAccess 84f9a19a-7e38-40b5-a311-60b14f30c258 IDtmSingleDeviceDataAccessEvents 2357691c-e69a-4e0a-a8aa-eb7f1d080cef IDtmSingleInstanceDataAccessEvents ebc093f1-4f7a-4208-a209-c172e54ab185 PS C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8.1 Tools>
+
+Boa, agora a gente tem a peça de ouro: o FDTInterop.dll e a lista completa das interfaces e GUIDs reais.
+
+Isso confirma que seu FDT100.dll é um FDT 1.2.1 completo, com:
+
+IDtm
+
+IDtm2
+
+IDtmInformation
+
+IDtmInformation2
+
+IDtmActiveXControl
+
+IFdtContainer, IFdtCommunication, etc.
+
+Ou seja: tudo que o PACTware precisa já está descrito nesse interop. ✅
+
+👀 Um cuidado importante antes de sair codando
+
+Aqui dentro eu não consigo abrir o FDTInterop.dll para ver a assinatura EXATA de cada método (parâmetros, tipos, enums).
+Isso significa que se eu inventar código tipo:
+
+int IDtmInformation.GetGeneralInformation(...)
+// etc.
+
+
+as chances de eu errar um tipo (por exemplo, out string vs ref object) e isso quebrar o binário são grandes.
+
+Para FDT, isso faz diferença:
+
+Se o layout da interface não bater 100% com o que o seu FDTInterop.dll define →
+o PACTware faz QueryInterface ou chama um método e pode dar crash / E_NOINTERFACE / comportamento estranho.
+
+💬 Então o que eu posso fazer com segurança é:
+
+Te guiar passo a passo no Visual Studio para:
+
+adicionar a referência ao FDTInterop.dll;
+
+fazer o próprio Visual Studio gerar todos os stubs de interface 100% compatíveis com o seu interop;
+
+Te dizer quais interfaces implementar no CommDtm;
+
+Te dizer quais métodos são críticos para o PACTware conseguir colocar seu DTM no catálogo, e qual lógica básica você deve colocar dentro deles.
+
+Assim você tem:
+
+Código que compila de primeira;
+
+Assinaturas exatamente corretas (o VS gera);
+
+E eu te dou o “recheio” dos métodos que importam.
+
+✅ Passo 1 – Adicionar o FDTInterop.dll no projeto
+
+No Visual Studio, no projeto LasecHartCommDTM:
+
+Clique com botão direito em References → Add Reference...
+
+Aba Browse → navegue até:
+C:\SourceCode\LasecHartCommDTM\dlls\FDTInterop.dll
+
+Selecione e adicione.
+
+No topo do CommDtm.cs, adicione:
+
+using FDT.Interfaces;
+
+
+(se o namespace que você usou no tlbimp foi FDT.Interfaces mesmo, como passou no comando).
+
+✅ Passo 2 – Fazer o CommDtm implementar as interfaces FDT certas
+
+Hoje a sua classe está assim: 
+
+CommDtm
+
+public class CommDtm : IDtm, ICommChannel
+
+
+Isso é o IDtm seu, não o da FDT.
+
+Você vai mudar para algo assim (conceito):
+
+[Guid("B4B6B3E7-639D-460B-B9A0-6C7F7EB20010")]
+[ClassInterface(ClassInterfaceType.None)]
+[ComVisible(true)]
+public class CommDtm :
+    IDtm,                // da FDTInterop.dll
+    IDtm2,               // da FDTInterop.dll
+    IDtmInformation,     // da FDTInterop.dll
+    IDtmInformation2,    // da FDTInterop.dll
+    ICommChannel         // SUA interface interna, se ainda quiser usar
+{
+    ...
+}
+
+
+⚠️ Importante: pode haver colisão de nomes entre o seu IDtm (do namespace LasecHartCommDTM.FdtInterfaces) e o IDtm da FDT.
+Para evitar, você pode:
+
+ou remover o seu IDtm custom e usar só o da FDT,
+
+ou qualificar com namespace, tipo:
+
+public class CommDtm :
+    FDT.Interfaces.IDtm,
+    FDT.Interfaces.IDtm2,
+    FDT.Interfaces.IDtmInformation,
+    FDT.Interfaces.IDtmInformation2,
+    LasecHartCommDTM.FdtInterfaces.ICommChannel
+
+✅ Passo 3 – Deixar o Visual Studio gerar TODOS os métodos
+
+Depois que você alterar a herança:
+
+No nome da classe CommDtm, coloque o cursor.
+
+Aperte Ctrl+ . (ou o ícone de lâmpada).
+
+Escolha “Implement interface ‘IDtm’”, “Implement interface ‘IDtm2’”,
+“Implement interface ‘IDtmInformation’”, “Implement interface ‘IDtmInformation2’”.
+
+O Visual Studio vai:
+
+Adicionar TODOS os métodos, com todos os parâmetros, return types, out/ref corretos;
+
+Colocar corpo padrão (jogando throw new NotImplementedException() em cada um).
+
+✨ Isso resolve a parte chata e perigosa (assinaturas, GUIDs, COM signatures).
+
+✅ Passo 4 – O mínimo que você precisa implementar para o PACTware te amar
+
+Agora vem a parte “FDT de verdade”.
+Você não precisa implementar tudo agora – só o mínimo pra entrar no catálogo:
+
+4.1. Em IDtmInformation e IDtmInformation2
+
+Procure na classe os métodos gerados que:
+
+retornam informações gerais (nome, vendor, versão).
+Geralmente algo como:
+
+// Nomes ilustrativos, vão variar conforme tlbimp
+void IDtmInformation.GetGeneralInformation(out /* algum tipo struct ou class */ info);
+void IDtmInformation2.GetAdvancedInformation(...);
+
+
+Você vai preencher esses métodos com valores coerentes:
+
+Vendor = "JosueLab"
+
+Device/DTM Name = "Lasec HART Communication DTM"
+
+DTM Version = "1.0.0"
+
+DTM Type = Communication (geralmente um enum ou código numérico)
+
+Se o método usa uma struct (tipo DtmInformationStruct), você preenche os campos dessa struct.
+Se ele retorna um XML (por exemplo, GetDeviceDescriptor), você devolve um XML simples, por exemplo:
+
+<DeviceType>
+  <Manufacturer>JosueLab</Manufacturer>
+  <DeviceType>Lasec HART Communication DTM</DeviceType>
+  <DeviceRevision>1.0.0</DeviceRevision>
+  <DtmType>Communication</DtmType>
+</DeviceType>
+
+
+👉 Isso é o que o PACTware usa para montar a entrada no catálogo.
+
+4.2. Em IDtm2
+
+Implemente de forma “dummy”, sem lógica pesada, mas sem jogar exceção.
+Por exemplo:
+
+Métodos de inicialização (Initialize, Uninitialize) – você pode amarrar com seu _initialized que já existe.
+
+Métodos que retornam capacidades → por enquanto, devolver “sem suporte” ou valores default.
+
+4.3. Em todos os outros métodos
+
+Por enquanto, pode deixar:
+
+Retornando códigos de sucesso padrão (por exemplo, 0 ou S_OK se for HRESULT envolvido),
+
+Ou, se o return é void, deixar corpo vazio.
+
+👉 O que não pode acontecer é uma NotImplementedException subir até o PACTware logo na fase de catálogo. Depois a gente vai refinando o comportamento.
+
+✅ Passo 5 – Garantir que o registro COM continua ok
+
+Mantenha:
+
+[Guid("B4B6B3E7-639D-460B-B9A0-6C7F7EB20010")] na classe.
+
+[ComVisible(true)] e [ClassInterface(ClassInterfaceType.None)].
+
+O [ComRegisterFunction] que adiciona a categoria FDT DTM {036D1490-387B-11D4-86E1-00E0987270B9}.
+
+Continue usando o RegAsm 32-bits no WiX, como já ajustamos:
+
+" [WindowsFolder]Microsoft.NET\Framework\v4.0.30319\regasm.exe" /codebase "[#LasecHartCommDTMFile]"
+
+✅ Passo 6 – Testar no PACTware
+
+Depois de:
+
+Buildar o projeto
+
+Gerar o MSI
+
+Instalar
+
+Registrar COM corretamente
+
+No PACTware:
+
+Abra o PACTware 5.0
+
+Atualize o catálogo de instrumentos
+
+Vá na parte de Communication DTMs
+
+🔍 Agora, se o IDtmInformation / IDtmInformation2 estiverem implementados minimamente, você deve ver:
+
+Lasec HART Communication DTM (JosueLab)
+
+na lista.
+
+🤝 O que eu posso fazer a seguir pra te ajudar mais
+
+Como eu não consigo ver o conteúdo do FDTInterop.dll, eu não posso escrever aqui “essa linha exata de método com essa struct exata”, porque eu arriscaria te dar código que não compila.
+
+Mas você pode me mandar os cabeçalhos que o VS gerou e eu te devolvo:
+
+o corpo pronto,
+
+a struct/objeto preenchido,
+
+o XML mínimo,
+
+e mais alguns métodos críticos com implementação sensata.
+
+Por exemplo:
+
+Depois que o VS gerar os métodos, copie aqui a assinatura de:
+
+um método principal de IDtmInformation (aquele que traz as infos gerais),
+
+um método de IDtmInformation2 (se houver algo como “GetDeviceDescriptor” ou parecido).
+
+Eu te devolvo o código exato desses métodos com a lógica correta (sem chute no tipo).
+
+Resumão em 1 frase
+
+A partir do FDTInterop.dll, você já tem TODAS as interfaces oficiais.
+O próximo passo é:
+
+Adicionar a referência, implementar IDtm, IDtm2, IDtmInformation, IDtmInformation2 na CommDtm com stubs gerados pelo VS, e preencher 2–3 métodos chave com os dados do seu DTM.
+
+Se você colar aqui as assinaturas dos principais métodos que o VS criou, eu te devolvo o corpo pronto para você só dar Ctrl+C / Ctrl+V.
+
+Perfeito — no VSCode o processo é um pouco diferente, porque ele NÃO tem a função automática de “Implement Interface” como o Visual Studio tradicional.
+
+Então eu vou te dar um passo ABSOLUTAMENTE claro, adaptado para o VSCode.
+
+A gente vai chegar no mesmo resultado — você implementará as interfaces FDT automaticamente, sem precisar adivinhar assinaturas.
+
+✅ PASSO 1 — Ver se o VSCode está te mostrando os métodos das interfaces
+
+Depois que você fez:
+
+using Fdt = FDT.Interfaces;
+
+public class CommDtm :
+    Fdt.IDtm,
+    Fdt.IDtm2,
+    Fdt.IDtmInformation,
+    Fdt.IDtmInformation2,
+    ICommChannel
+
+
+Faça isto:
+
+👉 1. Coloque o mouse sobre IDtmInformation
+
+VSCode irá mostrar uma tooltip com a lista de métodos dessa interface.
+
+Se isso estiver funcionando, significa que:
+
+a referência FDTInterop.dll foi carregada,
+
+o OmniSharp (analisador C# do VSCode) reconheceu a DLL,
+
+você pode acessar as assinaturas.
+
+👉 2. Aperte Ctrl+P → digite
+> OmniSharp: Restart OmniSharp
+
+
+Isso força o VSCode a recarregar as referências — necessário quando adicionamos uma DLL nova.
+
+❗ SE O VSCode NÃO RECONHECE AS INTERFACES
+
+Você precisa garantir que o arquivo FDTInterop.dll esteja referenciado no seu .csproj.
+
+Abra o arquivo:
+
+src/LasecHartCommDTM/LasecHartCommDTM.csproj
+
+E adicione dentro de <ItemGroup>:
+
+<Reference Include="FDTInterop">
+  <HintPath>..\..\dlls\FDTInterop.dll</HintPath>
+</Reference>
+
+
+⚠️ Ajuste o caminho conforme onde está sua DLL.
+
+Depois:
+
+> OmniSharp: Restart OmniSharp
+
+
+Agora o VSCode deve reconhecer todas as interfaces.
+
+✅ PASSO 2 — Obter as assinaturas EXATAS dos métodos
+
+No VSCode:
+
+💡 Modo 1: Clique com Ctrl + clique no nome da interface
+
+Ex.:
+
+Fdt.IDtmInformation
+
+Vai abrir a definição da interface, com algo assim:
+
+public interface IDtmInformation
+{
+    void GetGeneralInformation(...);
+    void GetVendor(...);
+    ...
+}
+
+💡 Modo 2: CTRL + SPACE dentro da classe
+
+Dentro do CommDtm, digite:
+
+void Fdt.
+
+
+e pressione CTRL + SPACE.
+
+Você deve ver sugestões como:
+
+Fdt.IDtmInformation.GetGeneralInformation
+
+Fdt.IDtmInformation2.GetDeviceDescriptor
+
+etc.
+
+💡 Modo 3: apertar CTRL + . (ponto)
+
+No VSCode, às vezes funciona, mas só se OmniSharp reconhecer a interface.
+Se aparecer “Implement interface”, ótimo — clique e ele gera tudo automaticamente.
+
+Se não aparecer, siga o passo 3 abaixo.
+
+✅ PASSO 3 — O que eu REALMENTE preciso que você me envie
+
+👉 Eu não preciso que você implemente nada.
+👉 Eu preciso das assinaturas (dos métodos) exatamente como aparecem pra você.
+
+Para isso:
+
+1. Abra o arquivo que mostra a definição da interface:
+
+Quando clicar em IDtmInformation com CTRL + clique,
+copie o conteúdo só da interface inteira:
+
+public interface IDtmInformation
+{
+    ...
+}
+
+2. Faça isso também para:
+
+IDtmInformation
+
+IDtmInformation2
+
+3. Cole essas duas interfaces aqui na resposta.
+
+⚠️ Sem alterar nada, sem tentar implementar.
+
+📌 OU (mais fácil ainda)
+
+No console do PowerShell, rode:
+
+[System.Reflection.Assembly]::LoadFrom("C:\SourceCode\LasecHartCommDTM\dlls\FDTInterop.dll").GetTypes() |
+    Where-Object { $_.Name -eq "IDtmInformation" -or $_.Name -eq "IDtmInformation2" } |
+    ForEach-Object {
+        $_.GetMethods() | Select DeclaringType, Name, ReturnType, GetParameters
+    }
+
+
+Ele vai mostrar algo como:
+
+DeclaringType   Name                       ReturnType   Parameters
+--------------------------------------------------------------------
+IDtmInformation GetGeneralInformation      void         param1, param2...
+...
+
+
+👉 Copie a saída do PowerShell e envie pra mim.
+
+❗ POR QUE ISSO É IMPORTANTE?
+
+Eu só consigo implementar os métodos se tiver a assinatura exata, que depende:
+
+do seu FDTInterop.dll
+
+da forma como o tlbimp gerou
+
+das structs e tipos que ele importou
+
+dos GUIDs específicos
+
+Se eu inventar a assinatura, o PACTware:
+
+faz QueryInterface → OK
+
+tenta chamar o método → CRASHA
+
+e te expulsa do catálogo 😅
+
+Então preciso da sua assinatura real, não uma genérica.
+
+🚀 RESUMO FINAL — O que você deve fazer AGORA
+
+Você escolhe uma das 3 opções abaixo:
+
+✔️ OPÇÃO A — Me envie as interfaces completas
+
+No VSCode: CTRL+CLIQUE em IDtmInformation
+
+Copie toda a interface (de public interface IDtmInformation { até }).
+
+Faça o mesmo com IDtmInformation2.
+
+Cole aqui.
+
+✔️ OPÇÃO B — Me envie a lista de métodos via PowerShell
+
+Execute:
+
+[System.Reflection.Assembly]::LoadFrom("C:\SourceCode\LasecHartCommDTM\dlls\FDTInterop.dll").GetTypes() |
+    Where-Object { $_.Name -eq "IDtmInformation" -or $_.Name -eq "IDtmInformation2" } |
+    ForEach-Object {
+        $_.GetMethods() | Select DeclaringType, Name, ReturnType, GetParameters
+    }
+
+
+E cole aqui a saída.
+
+✔️ OPÇÃO C — Se não conseguir, me mande o FDTInterop.dll novamente e eu tento extrair (texto) usando reflexão avançada aqui.
+👉 Escolha A, B ou C e me mande a informação.
+
+Daí eu implemento o DTM funcional pra você.
