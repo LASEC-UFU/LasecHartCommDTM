@@ -88,6 +88,7 @@ jobs:
           mkdir artifacts\DTM700\JosueLab\LasecHartCommDTM\Dtm
           copy src\LasecHartCommDTM\bin\Release\net48\LasecHartCommDTM.dll artifacts\DTM700\JosueLab\LasecHartCommDTM\Dtm\
           copy src\HartEngine\bin\Release\net48\HartEngine.dll artifacts\DTM700\JosueLab\LasecHartCommDTM\Dtm\
+          copy dlls\JIGFDT.FDT100.DLL artifacts\DTM700\JosueLab\LasecHartCommDTM\Dtm\Jigfdt.fdt100.dll
           copy src\LasecHartCommDTM\packaging\DeviceTypeCatalog.xml artifacts\DTM700\JosueLab\LasecHartCommDTM\
 
       # 🔹 ZIP

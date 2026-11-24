@@ -5,7 +5,7 @@
       Id="*"
       Name="Lasec HART Communication DTM"
       Language="1033"
-      Version="1.0.0.0"
+      Version="2.0.0.0"
       Manufacturer="JosueLab"
       UpgradeCode="1F6D3983-1B43-4F41-9204-4FAE6E4F0010">
 
@@ -47,6 +47,10 @@
 
                     <File Id="HartEngineFile"
                           Source="$(var.OutputDir)\Dtm\HartEngine.dll"/>
+
+                    <!-- Interop oficial FDT 1.2 (FDT-JIG), referenciado pelo DTM -->
+                    <File Id="JigFdtFile"
+                          Source="$(var.OutputDir)\Dtm\Jigfdt.fdt100.dll"/>
 
                     <RegistryValue Root="HKLM"
                                    Key="Software\JosueLab\LasecHartCommDTM"
