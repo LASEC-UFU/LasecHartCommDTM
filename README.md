@@ -17,7 +17,6 @@ Comm DTM FDT 1.2 (mestre HART) para PACTware e outros Frames FDT 1.x. Faz o mesm
 | `tests/HartEngine.Tests` | Testes de unidade do mestre HART (xUnit) |
 | `installer/Product.wxs` | MSI (WiX 3), gerado pelo workflow |
 | `dlls/` | `FDT100.dll` e `JIGFDT.FDT100.DLL`, oficiais do FDT-JIG. `FDTInterop.dll`, o tlbimp antigo, não é mais usado |
-| `spy/` | Proxy de inspeção da CodeWrights. Não faz parte do produto |
 
 ## Compilar, testar e registrar
 
